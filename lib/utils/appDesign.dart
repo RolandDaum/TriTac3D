@@ -15,6 +15,8 @@ class Appdesign with ChangeNotifier {
   late Color accentYellow;
   late Color accentPink;
 
+  double crossCircleStrokeWidth = 3;
+
   Appdesign() {
     init();
   }
@@ -32,9 +34,9 @@ class Appdesign with ChangeNotifier {
   }
 
   void setDarkColor() {
-    primaryBackground = const Color(0xFFFFFFFF);
-    onBackgroundContainer = const Color(0xFFE0E0E0);
-    fontActive = const Color(0xFF000000);
+    primaryBackground = const Color(0xFF0e1011);
+    onBackgroundContainer = const Color(0xFF17191a);
+    fontActive = const Color(0xFFFFFFFF);
     fontInactive = const Color(0xFF6B6D6F);
     accentGreen = const Color(0xFF27AD60);
     accentBlue = const Color(0xFF6089BD);
@@ -43,9 +45,9 @@ class Appdesign with ChangeNotifier {
   }
 
   void setLightColor() {
-    primaryBackground = const Color(0xFF0e1011);
-    onBackgroundContainer = const Color(0xFF17191a);
-    fontActive = const Color(0xFFFFFFFF);
+    primaryBackground = const Color(0xFFFFFFFF);
+    onBackgroundContainer = const Color(0xFFE0E0E0);
+    fontActive = const Color(0xFF000000);
     fontInactive = const Color(0xFF6B6D6F);
     accentGreen = const Color(0xFF27AD60);
     accentBlue = const Color(0xFF6089BD);
@@ -59,9 +61,9 @@ class Appdesign with ChangeNotifier {
     } else {
       setLightColor();
     }
-    darkmode = !darkmode;
     setSystemUI();
     notifyListeners();
+    darkmode = !darkmode;
   }
 
   void setSystemUI() {
