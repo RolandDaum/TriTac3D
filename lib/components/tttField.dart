@@ -28,7 +28,7 @@ class _TTTFieldState extends State<TTTField> {
         height: 200,
         width: 200,
         decoration: BoxDecoration(
-            color: appDesign.onBackgroundContainer.withOpacity(1),
+            color: appDesign.onBackgroundContainer.withOpacity(.25),
             border: Border.all(color: appDesign.fontInactive, width: 1)),
         child: Center(
           child: ImageFiltered(

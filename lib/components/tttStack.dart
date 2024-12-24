@@ -2,53 +2,44 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:tritac3d/components/tttGrid.dart';
 import 'package:tritac3d/utils/appDesign.dart';
 
 class TTTStack extends StatefulWidget {
-  const TTTStack({super.key});
+  const TTTStack({Key? key}) : super(key: key);
 
   @override
-  State<TTTStack> createState() => _TTTStackState();
+  State<TTTStack> createState() => TTTStackState();
 }
 
-class _TTTStackState extends State<TTTStack> {
-  List<Widget> buildBlurredImage(List<Widget> l) {
-    List<Widget> list = [];
-    list.addAll(l);
-    double sigmaX = 0.1;
-    double sigmaY = 0.1;
-    int steps = 40;
-    int oversize = 20;
-    for (int i = 0; i < 50; i += 5) {
-      // 100 is the starting height of blur
-      // 350 is the ending height of blur
-      list.add(Positioned(
-        top: oversize / steps * i.toDouble(),
-        bottom: oversize / steps * i.toDouble(),
-        left: oversize / steps * i.toDouble(),
-        right: oversize / steps * i.toDouble(),
-        child: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: sigmaX,
-              sigmaY: sigmaY,
-            ),
-            child: Container(
-              color: Colors.black.withOpacity(0),
-            ),
-          ),
-        ),
-      ));
-      sigmaX += .1;
-      sigmaY += .1;
-    }
-    return list;
+class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
+  int activeIndex = 0;
+  late AnimationController rotationController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    rotationController = AnimationController(
+      lowerBound: double.negativeInfinity,
+      upperBound: double.infinity,
+      value: 0,
+      vsync: this,
+    );
   }
 
-  int activeIndex = 0;
+  /// Methode zum Setzen und Animieren des Drehwinkels
+  Future<void> setRotation(double targetAngle) async {
+    await rotationController.animateTo(
+      targetAngle,
+      duration: const Duration(
+          milliseconds:
+              0), // Add constant rotation angle velocity aka how fast it has to run in order to stay a  consistant rotation velocytie (timer per degree)
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appDesign = Provider.of<Appdesign>(context);
@@ -60,49 +51,76 @@ class _TTTStackState extends State<TTTStack> {
           children: [
             Positioned(
               top: 175.0 * (3 - i),
-              child: Transform(
-                alignment: Alignment.center,
-                transform:
-                    Matrix4.rotationX((pi / 4) * (1 + 0.25 * i * 0) * 1.25)
-                      ..rotateZ(pi / 4),
-                child: Stack(alignment: Alignment.center, children: [
-                  ClipRect(
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(
-                          sigmaX: 5.0,
-                          sigmaY:
-                              5.0), // Blur everything underneith it (Frosted Glass effect)
-                      child: const TTTGrid(),
-                    ),
-                  ),
-                  activeIndex != i
-                      ? GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              activeIndex = i;
-                            });
-                          },
-                          child: Container(
-                            height: 340,
-                            width: 340,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: buildBlurredImage([]),
-                            ),
-                          ),
-                        )
-                      : SizedBox(width: 340, height: 340),
-                ]),
+              child: AnimatedBuilder(
+                animation: rotationController,
+                builder: (context, child) {
+                  return Transform(
+                    alignment: Alignment.center,
+                    transform: Matrix4.rotationX((pi / 4) * 1.25)
+                      ..rotateZ(rotationController.value * (pi / 180)),
+                    child: Stack(alignment: Alignment.center, children: [
+                      ClipRect(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(
+                              sigmaX: 5.0,
+                              sigmaY:
+                                  5.0), // Blur everything underneith it (Frosted Glass effect)
+                          child: const TTTGrid(),
+                        ),
+                      ),
+                      activeIndex != i
+                          ? GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  activeIndex = i;
+                                });
+                              },
+                              child: Container(
+                                height: 300,
+                                width: 300,
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(.25),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color:
+                                            appDesign.accentBlue.withOpacity(1),
+                                        blurRadius: 0,
+                                        offset: Offset(
+                                            // Convert angle into Steigung -> But still buggie and idk what when ...
+                                            ((tan(rotationController.value *
+                                                        (pi / 180))) %
+                                                    1) *
+                                                40,
+                                            ((tan((rotationController.value -
+                                                            90) *
+                                                        (pi / 180))) %
+                                                    1) *
+                                                40),
+                                        spreadRadius: 0)
+                                  ],
+                                ),
+                              ),
+                            )
+                          : const SizedBox(width: 300, height: 300),
+                    ]),
+                  );
+                },
               ),
             ),
           ],
         ),
       );
-    } // First rotate and then afterwards offest them
+    }
     return Center(
       child: Stack(
         children: tttGrids,
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    rotationController.dispose();
+    super.dispose();
   }
 }

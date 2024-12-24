@@ -16,32 +16,22 @@ class _TTTGridState extends State<TTTGrid> {
   @override
   Widget build(BuildContext context) {
     final appDesign = Provider.of<Appdesign>(context);
-    return ImageFiltered(
-      imageFilter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-      child: Container(
-        height: 150 * 2,
-        width: 150 * 2,
-        clipBehavior: Clip.antiAliasWithSaveLayer,
-        decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                  color: appDesign.onBackgroundContainer.withOpacity(.25),
-                  blurRadius: 4,
-                  offset: const Offset(-4, -4),
-                  spreadRadius: 4)
-            ],
-            border: Border.all(color: appDesign.fontInactive, width: 1),
-            borderRadius: BorderRadius.circular(20)),
-        child: GridView.builder(
-          padding: const EdgeInsets.all(0),
-          itemCount: 9,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3, mainAxisSpacing: 0, crossAxisSpacing: 0),
-          itemBuilder: (context, index) {
-            return const TTTField();
-          },
-        ),
+    return Container(
+      height: 150 * 2,
+      width: 150 * 2,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+          border: Border.all(color: appDesign.fontInactive, width: 1),
+          borderRadius: BorderRadius.circular(20)),
+      child: GridView.builder(
+        padding: const EdgeInsets.all(0),
+        itemCount: 9,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3, mainAxisSpacing: 0, crossAxisSpacing: 0),
+        itemBuilder: (context, index) {
+          return const TTTField();
+        },
       ),
     );
   }
