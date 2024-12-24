@@ -28,14 +28,18 @@ class _TTTFieldState extends State<TTTField> {
         height: 200,
         width: 200,
         decoration: BoxDecoration(
-            color: appDesign.onBackgroundContainer.withOpacity(0.5),
-            border: Border.all(color: appDesign.fontActive, width: 1)),
+            color: appDesign.onBackgroundContainer.withOpacity(1),
+            border: Border.all(color: appDesign.fontInactive, width: 1)),
         child: Center(
-          child: CustomPaint(
-            size: const Size(100, 100),
-            painter: state
-                ? (Random().nextBool() ? TttfieldCircle(appDesign) : null)
-                : (Random().nextBool() ? TttfieldCross(appDesign) : null),
+          child: ImageFiltered(
+            imageFilter: ImageFilter.blur(
+                sigmaX: 0, sigmaY: 0), // Blurs only the cross or circle
+            child: CustomPaint(
+              size: const Size(100, 100),
+              painter: state
+                  ? (Random().nextBool() ? TttfieldCircle(appDesign) : null)
+                  : (Random().nextBool() ? TttfieldCross(appDesign) : null),
+            ),
           ),
         ),
       ),
