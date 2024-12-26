@@ -32,11 +32,13 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
 
   /// Methode zum Setzen und Animieren des Drehwinkels
   Future<void> setRotation(double targetAngle) async {
+    if (targetAngle < rotationController.lowerBound ||
+        targetAngle > rotationController.upperBound) {
+      return;
+    }
     await rotationController.animateTo(
       targetAngle,
-      duration: const Duration(
-          milliseconds:
-              0), // Add constant rotation angle velocity aka how fast it has to run in order to stay a  consistant rotation velocytie (timer per degree)
+      duration: const Duration(milliseconds: 0),
     );
   }
 
@@ -44,6 +46,7 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final appDesign = Provider.of<Appdesign>(context);
     List<Widget> tttGrids = [];
+    int _shadowDistance = 20;
     for (int i = 0; i < 3; i++) {
       tttGrids.add(
         Stack(
@@ -57,7 +60,7 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
                   return Transform(
                     alignment: Alignment.center,
                     transform: Matrix4.rotationX((pi / 4) * 1.25)
-                      ..rotateZ(rotationController.value * (pi / 180)),
+                      ..rotateZ(-1 * rotationController.value * (pi / 180)),
                     child: Stack(alignment: Alignment.center, children: [
                       ClipRect(
                         child: BackdropFilter(
@@ -79,23 +82,19 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
                                 height: 300,
                                 width: 300,
                                 decoration: BoxDecoration(
-                                  color: Colors.red.withOpacity(.25),
+                                  color: Colors.red.withOpacity(0),
                                   boxShadow: [
                                     BoxShadow(
-                                        color:
-                                            appDesign.accentBlue.withOpacity(1),
-                                        blurRadius: 0,
+                                        color: appDesign.onBackgroundContainer
+                                            .withOpacity(0),
+                                        blurRadius: 20,
                                         offset: Offset(
-                                            // Convert angle into Steigung -> But still buggie and idk what when ...
-                                            ((tan(rotationController.value *
-                                                        (pi / 180))) %
-                                                    1) *
-                                                40,
-                                            ((tan((rotationController.value -
-                                                            90) *
-                                                        (pi / 180))) %
-                                                    1) *
-                                                40),
+                                            sin(-rotationController.value *
+                                                    (pi / 180)) *
+                                                _shadowDistance,
+                                            cos(-rotationController.value *
+                                                    (pi / 180)) *
+                                                _shadowDistance),
                                         spreadRadius: 0)
                                   ],
                                 ),

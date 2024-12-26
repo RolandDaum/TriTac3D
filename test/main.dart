@@ -1,55 +1,17 @@
-import 'package:flutter/material.dart';
+import 'package:tritac3d/utils/tttGame.dart';
+import 'package:vector_math/vector_math.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  TTTGame game = TTTGame(3);
+  game.setMove(Vector3(0, 0, 0), tttFieldState.cricle);
+  game.setMove(Vector3(1, 0, 0), tttFieldState.cricle);
+  game.setMove(Vector3(2, 0, 0), tttFieldState.cricle);
 
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: RotatingAnimation(),
-    );
-  }
-}
+  game.setMove(Vector3(0, 1, 0), tttFieldState.cricle);
+  game.setMove(Vector3(0, 2, 0), tttFieldState.cricle);
 
-class RotatingAnimation extends StatefulWidget {
-  @override
-  _RotatingAnimationState createState() => _RotatingAnimationState();
-}
+  game.setMove(Vector3(0, 0, 1), tttFieldState.cricle);
+  game.setMove(Vector3(0, 0, 2), tttFieldState.cricle);
 
-class _RotatingAnimationState extends State<RotatingAnimation>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat(); // Endlos-Schleife
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Rotation Animation')),
-      body: Center(
-        child: RotationTransition(
-          turns: _controller,
-          child: Container(
-            width: 100,
-            height: 100,
-            color: Colors.blue,
-            child: Icon(Icons.refresh, color: Colors.white, size: 50),
-          ),
-        ),
-      ),
-    );
-  }
+  print(game.toString());
 }

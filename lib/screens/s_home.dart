@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -32,24 +30,14 @@ class _SHomeState extends State<SHome> {
           width: double.infinity,
           color: appDesign.primaryBackground,
         ),
-        TTTStack(
-          key: _key,
+        GestureDetector(
+          onHorizontalDragUpdate: (details) {
+            _key.currentState!.setRotation(rotationValue += details.delta.dx);
+          },
+          child: TTTStack(
+            key: _key,
+          ),
         ),
-        Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: CupertinoSlider(
-                value: rotationValue,
-                min: -90,
-                max: 90,
-                onChanged: (value) {
-                  setState(() {
-                    rotationValue = value;
-                  });
-                  print(((tan(rotationValue * (pi / 180))) % 1));
-                  _key.currentState!.setRotation(rotationValue * -1);
-                })),
       ],
     );
   }
