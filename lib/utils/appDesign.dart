@@ -1,10 +1,13 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:vibration/vibration.dart';
 
 class Appdesign with ChangeNotifier {
   bool darkmode = true;
+  late bool hasVibrator = false;
 
   late Color primaryBackground;
   late Color onBackgroundContainer;
@@ -16,6 +19,8 @@ class Appdesign with ChangeNotifier {
   late Color accentPink;
 
   double crossCircleStrokeWidth = 3;
+  double gridDistance = 150;
+  double layerWidth = 300;
 
   Appdesign() {
     init();
@@ -24,13 +29,42 @@ class Appdesign with ChangeNotifier {
     init();
   }
 
-  void init() {
+  Future<void> init() async {
     if (darkmode) {
       setDarkColor();
     } else {
       setLightColor();
     }
     setSystemUI();
+
+    /// This mackes the app stuck on the splash screen
+    // WidgetsBinding.instance.platformDispatcher.onMetricsChanged = () {
+    //   double screenWidth = WidgetsBinding
+    //           .instance.platformDispatcher.views.first.physicalSize.width /
+    //       PlatformDispatcher.instance.views.first.devicePixelRatio;
+    //   double tmpLayerWidth = ((screenWidth * sqrt(2)) / 2) - 20;
+    //   if (tmpLayerWidth > 300 || tmpLayerWidth <= 0) {
+    //     layerWidth = 300;
+    //   } else if (layerWidth != tmpLayerWidth) {
+    //     layerWidth = tmpLayerWidth;
+    //     notifyListeners();
+    //   }
+    // };
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      double screenWidth = WidgetsBinding
+              .instance.platformDispatcher.views.first.physicalSize.width /
+          PlatformDispatcher.instance.views.first.devicePixelRatio;
+      double tmpLayerWidth = ((screenWidth * sqrt(2)) / 2) - 20;
+      if (tmpLayerWidth > 300 || tmpLayerWidth <= 0) {
+        layerWidth = 300;
+      } else if (layerWidth != tmpLayerWidth) {
+        layerWidth = tmpLayerWidth;
+
+        notifyListeners();
+      }
+    });
+
+    hasVibrator = await Vibration.hasVibrator() ?? false;
   }
 
   void setDarkColor() {

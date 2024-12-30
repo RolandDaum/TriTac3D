@@ -1,45 +1,86 @@
 import 'dart:math';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tritac3d/utils/appDesign.dart';
+import 'package:tritac3d/utils/tttGameController.dart';
+import 'package:vector_math/vector_math.dart' as vm;
+
+enum TTTFS { empty, cross, cricle }
 
 class TTTField extends StatefulWidget {
-  const TTTField({super.key});
+  final TTTGameController gameController;
+  final vm.Vector3 cordID;
+
+  const TTTField(
+      {super.key, required this.cordID, required this.gameController});
 
   @override
-  State<TTTField> createState() => _TTTFieldState();
+  State<TTTField> createState() => _TTTFieldSState();
 }
 
-class _TTTFieldState extends State<TTTField> {
+class _TTTFieldSState extends State<TTTField> {
   bool state = false;
+  BorderRadiusGeometry borderRadius = const BorderRadius.all(Radius.zero);
+
+  @override
+  void initState() {
+    state = Random().nextBool();
+    final isTopLeft = widget.cordID.x == 0 && widget.cordID.y == 0;
+    final isBottomLeft = widget.cordID.x == 0 &&
+        widget.cordID.y == widget.gameController.nGS - 1;
+    final isTopRight = widget.cordID.x == widget.gameController.nGS - 1 &&
+        widget.cordID.y == 0;
+    final isBottomRight = widget.cordID.x == widget.gameController.nGS - 1 &&
+        widget.cordID.y == widget.gameController.nGS - 1;
+
+    borderRadius = BorderRadius.only(
+      topLeft: isTopLeft ? const Radius.circular(20) : Radius.zero,
+      bottomLeft: isBottomLeft ? const Radius.circular(20) : Radius.zero,
+      topRight: isTopRight ? const Radius.circular(20) : Radius.zero,
+      bottomRight: isBottomRight ? const Radius.circular(20) : Radius.zero,
+    );
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final appDesign = Provider.of<Appdesign>(context);
+    final appDesign = Provider.of<Appdesign>(context),
+        gameController = Provider.of<TTTGameController>(context);
 
+    CustomPainter? getFieldPainer(TTTFS state) {
+      switch (state) {
+        case TTTFS.cricle:
+          return TttfieldCircle(appDesign);
+        case TTTFS.cross:
+          return TttfieldCross(appDesign);
+        default:
+          return null;
+      }
+    }
+
+    double fieldLength = appDesign.layerWidth / gameController.nGS;
     return GestureDetector(
       onTap: () {
-        setState(() {
-          state = !state;
-        });
+        widget.gameController.registeredMoveEvent(widget.cordID);
       },
       child: Container(
-        height: 200,
-        width: 200,
+        height: fieldLength,
+        width: fieldLength,
         decoration: BoxDecoration(
-            color: appDesign.onBackgroundContainer.withOpacity(.25),
-            border: Border.all(color: appDesign.fontInactive, width: 1)),
+            // color: appDesign.onBackgroundContainer.withOpacity(.25),
+            color: Colors.transparent,
+            borderRadius: borderRadius,
+            border: Border.all(
+                color: widget.gameController.getHighlightedState(widget.cordID)
+                    ? appDesign.fontActive
+                    : appDesign.fontInactive,
+                width: 1)),
         child: Center(
-          child: ImageFiltered(
-            imageFilter: ImageFilter.blur(
-                sigmaX: 0, sigmaY: 0), // Blurs only the cross or circle
-            child: CustomPaint(
-              size: const Size(100, 100),
-              painter: state
-                  ? (Random().nextBool() ? TttfieldCircle(appDesign) : null)
-                  : (Random().nextBool() ? TttfieldCross(appDesign) : null),
-            ),
+          child: CustomPaint(
+            size: Size(fieldLength - 10, fieldLength - 10),
+            painter: getFieldPainer(
+                widget.gameController.getFieldState(widget.cordID)),
           ),
         ),
       ),
