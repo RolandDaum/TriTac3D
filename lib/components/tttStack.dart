@@ -24,14 +24,36 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
     super.initState();
 
     final gameController =
-        Provider.of<TTTGameController>(context, listen: false);
+            Provider.of<TTTGameController>(context, listen: false),
+        appDesign = Provider.of<Appdesign>(context, listen: false);
 
     rotationController = AnimationController(
       lowerBound: double.negativeInfinity,
       upperBound: double.infinity,
       value: gameController.getLayerRotation(),
+      duration: Duration(seconds: 7),
       vsync: this,
     );
+
+    // Run background animation if background mode is enabled
+    if (gameController.backgroundMode) {
+      rotationController.repeat(
+          min: gameController.getLayerRotation(),
+          max: gameController.getLayerRotation() + 360,
+          period: Duration(seconds: appDesign.backgroundModeRotationTime),
+          count: 1);
+      rotationController.addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          gameController.setActiveLayer(
+              ((Random().nextDouble() * (gameController.nGS))).round());
+          rotationController.repeat(
+              min: gameController.getLayerRotation(),
+              max: gameController.getLayerRotation() + 360,
+              period: Duration(seconds: appDesign.backgroundModeRotationTime),
+              count: 1);
+        }
+      });
+    }
 
     verticalPosController = AnimationController(value: 0, vsync: this);
   }

@@ -24,6 +24,8 @@ class TTTGameController with ChangeNotifier {
   double _layerRotation = 45.0;
   int _activeLayer = 0;
   bool hasVibrator = false;
+  final double defaultRotation = 55.0;
+  bool backgroundMode = false;
 
   /// Layer (top -> bottom)
   /// Colum/Row
@@ -35,8 +37,8 @@ class TTTGameController with ChangeNotifier {
   }
   Future<void> init() async {
     _lastFieldState = Random().nextBool() ? TTTFS.cricle : TTTFS.cross;
-    _activeLayer = (nGS / 2).floor();
     resetGame();
+    setBackgroundMode();
 
     hasVibrator = (await Vibration.hasVibrator())!;
   }
@@ -61,7 +63,6 @@ class TTTGameController with ChangeNotifier {
 
   void setLayerRotation(double angle) {
     _layerRotation = angle;
-    // updateGameUI(); // Double rebuild -> unnecessary
   }
 
   double getLayerRotation() {
@@ -134,26 +135,54 @@ class TTTGameController with ChangeNotifier {
 
   /// Clears the entire gameState
   void resetGame() {
+    backgroundMode = false;
     gameState = List.generate(
         nGS,
         (_) => List.generate(nGS,
             (_) => List.generate(nGS, (_) => TTTGameFieldState(TTTFS.empty))));
+    setActiveLayer(((nGS - 1) / 2).round());
+    setLayerRotation(defaultRotation);
+    updateGameUI();
+  }
+
+  /// Resets and fills the gameState with random TTTFS states based on the given chance
+  void setRandomGame(double chance) {
+    resetGame();
+    for (int x = 0; x < nGS; x++) {
+      for (int y = 0; y < nGS; y++) {
+        for (int z = 0; z < nGS; z++) {
+          if (Random().nextDouble() < chance) {
+            gameState[x][y][z].state =
+                Random().nextBool() ? TTTFS.cricle : TTTFS.cross;
+          }
+        }
+      }
+    }
+    checkforwin();
+    updateGameUI();
+  }
+
+  void setBackgroundMode() {
+    setRandomGame(0.5);
+    setActiveLayer(nGS - 2);
+    setLayerRotation(defaultRotation);
+    backgroundMode = true;
     updateGameUI();
   }
 
   /// Fins all possible wins in the cubic game field and safes them in calss win object
   /// It only finds the wins based on the last move but there are some which dont fall under this group, though idk. which ones
-  /// LOGIC 1:
-  /// Given is n as the cubic side length. n^3 is the total number of fields in the game.
-  /// The number of all 2D layers with a size of n^2, not only in the 'normal' orientation, is n^2+6
-  /// On all of these layers there can be a possible n streak of cross/cricle with wich you can win
-  /// (n^3 are all the normal layers; +6 is const for a cube and represents all the diagonal layers you can lay through it)
-  ///
-  /// LOGIC 2:
-  ///  The last move must be the one who won the game
-  ///  The n Streak of cross/circle must start/end/cross the last set field in any way if the player won
-  ///  Backtrace everey possible win combination path from the last set field -> Spreak out winning lines in all posssible directions
-  /// I USE LOGIC 2!!!
+  // LOGIC 1:
+  // Given is n as the cubic side length. n^3 is the total number of fields in the game.
+  // The number of all 2D layers with a size of n^2, not only in the 'normal' orientation, is n^2+6
+  // On all of these layers there can be a possible n streak of cross/cricle with wich you can win
+  // (n^3 are all the normal layers; +6 is const for a cube and represents all the diagonal layers you can lay through it)
+  //
+  // LOGIC 2:
+  //  The last move must be the one who won the game
+  //  The n Streak of cross/circle must start/end/cross the last set field in any way if the player won
+  //  Backtrace everey possible win combination path from the last set field -> Spreak out winning lines in all posssible directions
+  // I USE LOGIC 2!!!
   void checkforwin() {
     // L1: Create all the different Layers in a given formatt and check them for a win.
     // L2: Check every direction

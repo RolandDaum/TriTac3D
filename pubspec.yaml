@@ -1,5 +1,5 @@
 name: tritac3d
-description: "A new Flutter project."
+description: "3D tik-tak-toe game"
 
 publish_to: 'none'
 
@@ -14,12 +14,12 @@ dependencies:
   provider: ^6.1.2
   vector_math: ^2.1.4
   vibration: ^2.0.1
+  flutter_svg: ^2.0.16
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  # flutter_lints: ^3.0.0
+  back_button_interceptor: ^8.0.3
 
 flutter:
   uses-material-design: false
@@ -27,6 +27,20 @@ flutter:
   # # Enable generation of localized Strings from arb files.
   # generate: true
 
-  # assets:
-  #   # Add assets from the images directory to the application.
-  #   - assets/images/
+
+  assets:
+    - assets/icons/icon_internetsearch.svg
+    - assets/icons/icon_crown.svg
+    - assets/icons/icon_grid.svg
+
+  fonts:
+    - family: Jersey10
+      fonts:
+        - asset: assets/fonts/Jersey10-Regular.ttf
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Italic-VariableFont.ttf
+          style: italic
+        - asset: assets/fonts/Inter-VariableFont.ttf
+        - asset: assets/fonts/Inter_28pt-Black.ttf
+          weight: 900

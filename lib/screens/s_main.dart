@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tritac3d/components/homeOverlay.dart';
 import '../components/tttStack.dart';
 import '../utils/appDesign.dart';
 import '../utils/tttGameController.dart';
 
-class SHome extends StatefulWidget {
-  const SHome({super.key});
+class SMain extends StatefulWidget {
+  const SMain({super.key});
 
   @override
-  State<SHome> createState() => _SHomeState();
+  State<SMain> createState() => _SMainState();
 }
 
-class _SHomeState extends State<SHome> {
+class _SMainState extends State<SMain> {
   final TTTGameController gameController = TTTGameController();
   final GlobalKey<TTTStackState> _stackStateKey = GlobalKey<TTTStackState>();
   late double rotationValue;
@@ -76,6 +77,7 @@ class _SHomeState extends State<SHome> {
             }),
           ),
         ),
+        Homeoverlay()
       ],
     );
   }

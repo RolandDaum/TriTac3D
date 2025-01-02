@@ -21,6 +21,9 @@ class Appdesign with ChangeNotifier {
   double crossCircleStrokeWidth = 3;
   double gridDistance = 150;
   double layerWidth = 300;
+  int backgroundModeRotationTime = 40;
+
+  late TextStyle TTTButtonTxtStyle;
 
   Appdesign() {
     init();
@@ -36,6 +39,12 @@ class Appdesign with ChangeNotifier {
       setLightColor();
     }
     setSystemUI();
+
+    TTTButtonTxtStyle = TextStyle(
+        fontFamily: "Inter",
+        color: fontActive,
+        fontWeight: FontWeight.w900,
+        fontSize: 40);
 
     /// This mackes the app stuck on the splash screen
     // WidgetsBinding.instance.platformDispatcher.onMetricsChanged = () {
