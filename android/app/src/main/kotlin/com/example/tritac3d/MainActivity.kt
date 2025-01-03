@@ -1,4 +1,4 @@
-package com.example.tritac3d
+package com.tritac3d.app
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -17,6 +17,7 @@ class Appdesign with ChangeNotifier {
   late Color accentBlue;
   late Color accentYellow;
   late Color accentPink;
+  late Color border;
 
   double crossCircleStrokeWidth = 3;
   double gridDistance = 150;
@@ -85,6 +86,7 @@ class Appdesign with ChangeNotifier {
     accentBlue = const Color(0xFF6089BD);
     accentYellow = const Color(0xFFCB9B6D);
     accentPink = const Color(0xFF8D5194);
+    border = const Color(0xFF2e2e2e);
   }
 
   void setLightColor() {
@@ -96,6 +98,8 @@ class Appdesign with ChangeNotifier {
     accentBlue = const Color(0xFF6089BD);
     accentYellow = const Color(0xFFCB9B6D);
     accentPink = const Color(0xFF8D5194);
+    border = const Color(0xFFE0E0E0);
+
   }
 
   void toggleDarkMode() {

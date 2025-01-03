@@ -20,7 +20,7 @@ class TTTButton extends StatefulWidget {
       this.height,
       this.width,
       this.fontSize,
-      this.padding = const EdgeInsets.all(0),
+      this.padding = const EdgeInsets.symmetric(vertical: 20),
       this.margin = const EdgeInsets.all(0),
       this.type = TTTBType.primary,
       this.child,
@@ -32,6 +32,7 @@ class TTTButton extends StatefulWidget {
 
 class _TTTButtonState extends State<TTTButton> {
   bool _isPressed = false;
+  // TODO: Add vibration / haptic feedback
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +70,15 @@ class _TTTButtonState extends State<TTTButton> {
                   ? appDesign.accentGreen
                   : appDesign.onBackgroundContainer),
           borderRadius: BorderRadius.circular(10),
+          boxShadow: _isPressed
+              ? []
+              : [
+                  BoxShadow(
+                    color: Colors.black.withAlpha((255 * 0.2).toInt()),
+                    offset: Offset(0, 2),
+                    blurRadius: 4,
+                  ),
+                ],
         ),
         transform: _isPressed
             ? Matrix4.translationValues(0, 2, 0)

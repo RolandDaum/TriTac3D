@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:tritac3d/components/homeOverlay.dart';
 import 'package:tritac3d/components/tttButton.dart';
 import 'package:tritac3d/utils/appDesign.dart';
+import 'package:vibration/vibration.dart';
 
 class Gamesettingspopup extends StatefulWidget {
-  const Gamesettingspopup({super.key});
+  final Function(acPopUpTypes type) switchToPopUp;
+
+  const Gamesettingspopup({super.key, required this.switchToPopUp});
 
   @override
   State<Gamesettingspopup> createState() => _GamesettingspopupState();
@@ -48,9 +52,47 @@ class _GamesettingspopupState extends State<Gamesettingspopup> {
           ),
           SizedBox(height: 20),
           TTTButton(
+            onPressed: () {
+              widget.switchToPopUp(acPopUpTypes.gameConnection);
+            },
             padding: EdgeInsets.symmetric(vertical: 20),
-            text: "CONTINUE",
-          )
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  "assets/icons/icon_internetsearch.svg",
+                  colorFilter:
+                      ColorFilter.mode(appDesign.fontActive, BlendMode.srcIn),
+                  height: 44,
+                ),
+                SizedBox(width: 20),
+                Text("ONLINE",
+                    style: appDesign.TTTButtonTxtStyle.copyWith(fontSize: 34))
+              ],
+            ),
+          ),
+          SizedBox(height: 20),
+          TTTButton(
+            onPressed: () {},
+            type: TTTBType.secondary,
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  "assets/icons/icon_lan.svg",
+                  colorFilter:
+                      ColorFilter.mode(appDesign.fontActive, BlendMode.srcIn),
+                  height: 44,
+                ),
+                SizedBox(width: 20),
+                Text("LOCAL",
+                    style: appDesign.TTTButtonTxtStyle.copyWith(fontSize: 34))
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -134,7 +176,9 @@ class _settingSliderState extends State<_settingSlider> {
                         activeColor: appDesign.fontActive,
                         inactiveColor: appDesign.fontInactive,
                         onChanged: (value) {
-                          // TODO: Add vibration / haptic feedback
+                          appDesign.hasVibrator
+                              ? Vibration.vibrate(duration: 50, amplitude: 64)
+                              : null;
                           setState(() {
                             _value = value;
                           });

@@ -15,23 +15,28 @@ dependencies:
   vector_math: ^2.1.4
   vibration: ^2.0.1
   flutter_svg: ^2.0.16
+  flutter_webrtc: ^0.12.5+hotfix.2
+  back_button_interceptor: ^8.0.3
+  firebase_core: ^3.9.0
+  firebase_database: ^11.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  back_button_interceptor: ^8.0.3
 
 flutter:
   uses-material-design: false
-
-  # # Enable generation of localized Strings from arb files.
-  # generate: true
-
 
   assets:
     - assets/icons/icon_internetsearch.svg
     - assets/icons/icon_crown.svg
     - assets/icons/icon_grid.svg
+    - assets/icons/icon_abc.svg
+    - assets/icons/icon_addcircle.svg
+    - assets/icons/icon_arrowup.svg
+    - assets/icons/icon_arrowdown.svg
+    - assets/icons/icon_lan.svg
+    - assets/icons/icon_server.svg
 
   fonts:
     - family: Jersey10
