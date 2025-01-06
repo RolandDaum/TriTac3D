@@ -143,7 +143,6 @@ class _WebRTCAppState extends State<WebRTCApp> {
       if (event.snapshot.value != null) {
         Map<String, dynamic> data =
             (event.snapshot.value as Map).cast<String, dynamic>();
-
         await _peerConnection?.setRemoteDescription(RTCSessionDescription(
           data['sdp'],
           data['type'],
@@ -190,7 +189,7 @@ class _WebRTCAppState extends State<WebRTCApp> {
     });
 
     final ref = _database.ref('signaling/0000/candidates/offerer');
-// Alle vorhandenen ICE-Candidates hinzufügen
+    // Alle vorhandenen ICE-Candidates hinzufügen
     await ref.once().then((snapshot) {
       if (snapshot.snapshot.value != null) {
         Map<String, dynamic> candidates =

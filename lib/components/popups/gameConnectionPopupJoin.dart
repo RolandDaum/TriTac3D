@@ -1,8 +1,5 @@
-import 'dart:convert';
-
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:tritac3d/components/homeOverlay.dart';
 import 'package:tritac3d/components/scrollSelector.dart';
@@ -23,11 +20,24 @@ class Gameconnectionpopupjoin extends StatefulWidget {
 class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
   final WebRTCConnectionManager webRTCConnectionManager =
       WebRTCConnectionManager();
-  String _code = "";
+  String _gameCode = "";
 
   @override
   void initState() {
-    _findGame();
+    webRTCConnectionManager.connectionEstablished = () {
+      print("");
+      print("");
+      print(" - C O N N E C T E D - ");
+      print("");
+      print("");
+    };
+    webRTCConnectionManager.connectionFailed = () {
+      print("");
+      print("");
+      print(" - F A I L E D - ");
+      print("");
+      print("");
+    };
     super.initState();
   }
 
@@ -35,39 +45,6 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
   void dispose() {
     webRTCConnectionManager.dispose();
     super.dispose();
-  }
-
-  void _findGame() {
-    print(_code);
-    final DatabaseReference dbRef = FirebaseDatabase.instance.ref(_code);
-    try {
-      dbRef.once().then((DatabaseEvent event) {
-        if (event.snapshot.exists) {
-          final data = Map<String, dynamic>.from(
-              event.snapshot.value as Map<Object?, Object?>);
-          if (data.containsKey('offer')) {
-            final offer = data['offer'];
-            print('Offer found');
-            webRTCConnectionManager
-                .answerConnection(
-                    RTCSessionDescription(offer['sdp'], offer['type']))
-                .then((answerString) {
-              dynamic answer = json.decode(answerString);
-              dbRef.update({
-                'answer': answer,
-                // 'timestamp': DateTime.now().millisecondsSinceEpoch,
-              }).then((_) {
-                print('Answer wrote successfully.');
-              });
-            });
-          }
-        } else {
-          print("No data available.");
-        }
-      });
-    } catch (e) {
-      print('Error joining game: $e');
-    }
   }
 
   @override
@@ -86,8 +63,7 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
         children: [
           _gameCodeSelector(
             onCodeChange: (code) {
-              print(code);
-              _code = code;
+              _gameCode = code;
             },
           ),
           SizedBox(
@@ -95,9 +71,42 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
           ),
           TTTButton(
             onPressed: () {
-              _findGame();
+              webRTCConnectionManager.joinGame(_gameCode);
             },
             text: "CONTINUE",
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          TTTButton(
+            type: TTTBType.secondary,
+            onPressed: () {
+              Clipboard.getData('text/plain').then((clipbaordData) {
+                if (!(clipbaordData != null && clipbaordData.text != null)) {
+                  return;
+                }
+                List<String> charList = clipbaordData!.text!.split('');
+                if (charList.length == 4 &&
+                    charList.any((char) => [
+                          "0",
+                          "1",
+                          "2",
+                          "3",
+                          "4",
+                          "5",
+                          "6",
+                          "7",
+                          "8",
+                          "9"
+                        ].contains(char))) {
+                  setState(() {
+                    _gameCode = charList.join();
+                  });
+                  webRTCConnectionManager.joinGame(_gameCode);
+                }
+              });
+            },
+            text: "PASTE",
           )
         ],
       ),
@@ -108,10 +117,9 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
 class _gameCodeSelector extends StatelessWidget {
   final Function(String)? onCodeChange;
 
-  _gameCodeSelector({super.key, this.onCodeChange});
+  _gameCodeSelector({this.onCodeChange});
 
   void _onChanges(List<String> codeList, String value, int index) {
-    print("CODE SELECTOR CHANGES " + codeList.join());
     codeList[index] = value;
     if (onCodeChange != null) {
       onCodeChange!(codeList.join());
@@ -154,8 +162,8 @@ class _gameCodeSelector extends StatelessWidget {
 }
 
 class _vertSeperator extends StatelessWidget {
-  final double height;
-  _vertSeperator({super.key, this.height = 100});
+  final double height = 100;
+  const _vertSeperator();
 
   @override
   Widget build(BuildContext context) {

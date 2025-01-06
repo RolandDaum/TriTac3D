@@ -1,96 +1,160 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'dart:async';
+import 'dart:math';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 class WebRTCConnectionManager {
-  RTCPeerConnection? peerConnection;
-  RTCDataChannel? dataChannel;
-  RTCSessionDescription? sdp; // Local Description (offer/answer)
+  /// - V A R s - ///
 
-  /// Constraints for the local description (offer/answer)
-  /// Used when in createOffer() and createAnswer() methods
-  final _OFLocalDescriptionConstrains = {
-    'mandatory': {
-      'OfferToReceiveAudio': false,
-      'OfferToReceiveVideo': false,
-    },
-    'optional': [],
-  };
-  Future<void> dispose() async {
-    await dataChannel?.close();
-    await peerConnection?.close();
-    await peerConnection?.dispose();
-    peerConnection = null;
-    dataChannel = null;
-    sdp = null;
-    print("RTCPeerConnectio has been disposed sucessfully");
-  }
+  // Firebase
+  final FirebaseDatabase _rltdb = FirebaseDatabase.instance;
+  List<StreamSubscription> _rltdbListener =
+      []; // saves all the different _rltdb event listeners
+  // Communication
+  RTCPeerConnection? _peerConnection; // Main connection object
+  RTCDataChannel? _dataChannel; // Communication Object
+  // Stuff
+  bool _isHost = false; // marker weither host or join
+  Function(String data)? _onData;
+  String? _gameCode; // GameCode which is the connection rltdb directory
+  Function(RTCPeerConnectionState)? _onPeerConnectionState;
+  Function(RTCDataChannelState)? _onDataChannelState;
+  Function(String)? _onNewGameCode;
+  VoidCallback? connectionEstablished;
+  VoidCallback? connectionFailed;
 
-  /// Creates a new RTCPeerConnection (peerConnection)
-  /// Creates a new RTCDataChannel (dataChannel)
-  /// Creates a LOCAL description (offer) which is later copied to the clipboard
-  Future<String> offerConnection() async {
-    // RTCPeerConnection
-    peerConnection = await _createPeerConnection();
+  /// - M E T H O D S - ///
 
-    // RTCDataChannel
-    await createRTCDataChannel();
+  /// Creates a game offer in Firebase Realtime DB under the subdirectory games/{return STRING GAMECODE}
+  Future<String> createGame() async {
+    await dispose();
+    // Marks itself as the host (offerer)
+    _isHost = true;
 
-    // Local RTCSessionDescription (offer)
-    RTCSessionDescription offer =
-        await peerConnection!.createOffer(_OFLocalDescriptionConstrains);
-    await peerConnection!.setLocalDescription(offer).then((value) {
-      print("LOCAL DESCRIPTION HAS BEEN SET SUCCESSFULLY");
+    // generates the game code cause he's the host (offerer)
+    _gameCode = _genGameCode();
+
+    // initialises the peerConnection
+    await _createPeerConnection();
+
+    // Creates offer, Set Offer as local Description, Write Offer to rltdb
+    RTCSessionDescription offer = await _peerConnection!.createOffer({
+      'mandatory': {
+        'OfferToReceiveAudio': false,
+        'OfferToReceiveVideo': false,
+      },
+      'optional': [],
     });
-    // _sdpChanged(); // Copies offer (local Description) to the clipboard
+    await _peerConnection!.setLocalDescription(offer);
+    _rltdb.ref('games/$_gameCode/offer').set(offer.toMap());
 
-    RTCSessionDescription sdp = (await peerConnection!.getLocalDescription())!;
+    // Listener for an answer
+    _rltdbListener.add(await _rltdb
+        .ref('games/$_gameCode/answer')
+        .onValue
+        .listen((event) async {
+      if (event.snapshot.value != null) {
+        // Sets the answer as remote Description
+        Map<String, dynamic> data =
+            (event.snapshot.value as Map).cast<String, dynamic>();
+        await _peerConnection!.setRemoteDescription(RTCSessionDescription(
+          data['sdp'],
+          data['type'],
+        ));
+      }
+    }));
 
-    print("OFFER SDP");
-    print(sdp.sdp.toString());
-    return (json.encode(sdp.toMap()));
+    // Listener for all incoming ICE from the JOIN side
+    _rltdbListener.add(await _rltdb
+        .ref('games/$_gameCode/candidates/receiver')
+        .onChildAdded
+        .listen((event) {
+      if (event.snapshot.value != null) {
+        // Adds every new discoverd candidate
+        Map<String, dynamic> data =
+            (event.snapshot.value as Map).cast<String, dynamic>();
+        _peerConnection?.addCandidate(RTCIceCandidate(
+          data['candidate'],
+          data['sdpMid'],
+          data['sdpMLineIndex'],
+        ));
+      }
+    }));
+
+    _onNewGameCode?.call(_gameCode!);
+    return _gameCode!;
   }
 
-  /// Creates a new RTCPeerConnection (peerConnection)
-  /// Sets the REMOTE description (offer)
-  /// Creates a new LOCAL description (answer) which is later copied to the clipboard
-  Future<String> answerConnection(RTCSessionDescription offer) async {
-    print("OFFER SDP:");
-    print(offer.sdp.toString());
-    // RTCPeerConnection
-    peerConnection = await _createPeerConnection();
+  /// Joins a game offer from the Firebase Realtime DB under the subdirectory games/{STRING gameCode}
+  Future<void> joinGame(String gameCode) async {
+    await dispose();
+    this._gameCode = gameCode;
+    await _createPeerConnection();
 
-    // Sets the REMOTE description (offer)
-    await peerConnection!.setRemoteDescription(offer);
+    // Gets the corresponding remote Description from given gameCode directory
+    await _rltdb.ref('games/$_gameCode/offer').once().then((event) async {
+      if (event.snapshot.value != null) {
+        // Sets the offer as remote Description
+        Map<String, dynamic> offer =
+            (event.snapshot.value as Map).cast<String, dynamic>();
+        await _peerConnection?.setRemoteDescription(
+          RTCSessionDescription(offer['sdp'], offer['type']),
+        );
+      }
+    });
 
-    // Creates a new LOCAL description (answer)
-    final answer =
-        await peerConnection!.createAnswer(_OFLocalDescriptionConstrains);
-    await peerConnection!.setLocalDescription(answer);
-    // _sdpChanged();
+    // Generate Answer, Set Answer as local Description, Write Answer to rltdb
+    RTCSessionDescription answer = await _peerConnection!.createAnswer();
+    await _peerConnection?.setLocalDescription(answer);
+    await _rltdb.ref('games/$_gameCode/answer/').set(answer.toMap());
 
-    RTCSessionDescription sdp = (await peerConnection!.getLocalDescription())!;
-    print("ANSWER SDP:");
-    print(sdp.sdp.toString());
-    return (json.encode(sdp.toMap()));
+    // Fetch all existing ICE's from HOST and adds them to PeerConnection
+    await _rltdb
+        .ref('games/$_gameCode/candidates/initiator')
+        .once()
+        .then((snapshot) {
+      if (snapshot.snapshot.value != null) {
+        // Adds all preexisting ICE to PeerConnection
+        Map<String, dynamic> candidates =
+            Map<String, dynamic>.from(snapshot.snapshot.value as Map);
+        candidates.forEach((key, value) {
+          Map<String, dynamic> data = value.cast<String, dynamic>();
+          _peerConnection?.addCandidate(RTCIceCandidate(
+            data['candidate'],
+            data['sdpMid'],
+            data['sdpMLineIndex'],
+          ));
+        });
+      }
+    });
+
+    // Fetches every new incoming ICE from Host and adds them to PeerConnection
+    _rltdbListener.add(await _rltdb
+        .ref('games/$_gameCode/candidates/initiator')
+        .onChildAdded
+        .listen((event) {
+      if (event.snapshot.value != null) {
+        // Adds new ICE to PeerConnection
+        Map<String, dynamic> data =
+            (event.snapshot.value as Map).cast<String, dynamic>();
+        _peerConnection?.addCandidate(RTCIceCandidate(
+          data['candidate'],
+          data['sdpMid'],
+          data['sdpMLineIndex'],
+        ));
+      }
+    }));
   }
 
-  /// Sets the REMOTE description (answer)
-  Future<void> acceptAnswer(RTCSessionDescription answer) async {
-    // Sets the REMOTE description (answer)
-    await peerConnection!.setRemoteDescription(answer);
-
-    print("Answer Accepted");
-  }
-
-  /// Creates a new RTCPeerConnection
-  Future<RTCPeerConnection> _createPeerConnection() async {
-    // RTC PeerConnection configuration
-    Map<String, dynamic> config = {
+  /// Initialises the _peerConnection object with given settings
+  Future<void> _createPeerConnection() async {
+    // Creates a peer Connecton Object with some iceServers for 'public' IPs
+    _peerConnection = await createPeerConnection({
       'iceServers': [
         {
           'urls': [
-            // "stun:stun.l.google.com:19302",
+            "stun:stun.l.google.com:19302",
             'stun:stun1.l.google.com:19302',
             'stun:stun2.l.google.com:19302',
             "stun:stun3.l.google.com:19302",
@@ -100,64 +164,155 @@ class WebRTCConnectionManager {
           ]
         }
       ]
+    });
+
+    // Dumps all own ice candidates into firebase
+    _peerConnection!.onIceCandidate = (candidate) {
+      _rltdb
+          .ref('games/$_gameCode/candidates/' +
+              (_isHost ? 'initiator' : 'receiver'))
+          .push()
+          .set(candidate.toMap());
     };
 
-    final RTCPeerConnection connection = await createPeerConnection(config);
-
-    // Event Methods
-    connection.onIceCandidate = (candidate) {
-      print("New ICE candidate");
-      _sdpChanged(); // IDK if this is really necessary
-    };
-    connection.onDataChannel = (channel) {
-      print("Recived data channel");
-      addRTCDataChannel(
-          channel); // Adds the RTCDataChannel to the dataChannel class variable
-    };
-    connection.onIceConnectionState = (state) {
-      if (state == RTCIceConnectionState.RTCIceConnectionStateFailed ||
-          state == RTCIceConnectionState.RTCIceConnectionStateClosed) {
-        dispose();
+    // Just the event handler on different peer connection state events
+    _peerConnection!.onConnectionState = (state) {
+      _onPeerConnectionState?.call(state);
+      switch (state) {
+        case RTCPeerConnectionState.RTCPeerConnectionStateNew:
+          break;
+        case RTCPeerConnectionState.RTCPeerConnectionStateConnecting:
+          break;
+        case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
+          _onConnectionEstablished();
+          break;
+        case RTCPeerConnectionState.RTCPeerConnectionStateClosed:
+          _onConnectionFailure();
+          break;
+        case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
+          _onConnectionFailure();
+          break;
+        case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
+          _onConnectionFailure();
+          break;
       }
-      print("ICE connection state: $state");
-    };
-    connection.onSignalingState = (state) {
-      print("Signaling state: $state");
     };
 
-    return connection;
-  }
-
-  /// Copies the local Description (SDP) (offer/answer) to the clipboard.
-  void _sdpChanged() async {
-    sdp = (await peerConnection!.getLocalDescription())!;
-    Clipboard.setData(ClipboardData(text: json.encode(sdp!.toMap())));
-    print("${sdp!.type} SDP is coppied to the clipboard");
-  }
-
-  /// Creates a new RTCDataChannel
-  Future<void> createRTCDataChannel() async {
-    RTCDataChannelInit dataChannelDict = RTCDataChannelInit();
-    RTCDataChannel channel = await peerConnection!
-        .createDataChannel("textchat-chan", dataChannelDict);
-    print("Created data channel");
-    addRTCDataChannel(channel);
-  }
-
-  /// Sets the object RTCDataChannel to the dataChannel variable and defines some event methods
-  void addRTCDataChannel(RTCDataChannel channel) {
-    dataChannel = channel;
-    dataChannel!.onMessage = (data) {
-      print("OTHER: " + data.text);
+    // Init all the different dataChannel events
+    Function initDataChannelEvents = () {
+      _dataChannel!.onMessage = (message) {
+        _onData?.call(message.text);
+      };
+      _dataChannel!.onDataChannelState = (state) async {
+        _onDataChannelState?.call(state);
+        switch (state) {
+          case RTCDataChannelState.RTCDataChannelConnecting:
+            break;
+          case RTCDataChannelState.RTCDataChannelOpen:
+            connectionEstablished?.call();
+            _onConnectionEstablished();
+            break;
+          case RTCDataChannelState.RTCDataChannelClosing:
+            _onConnectionFailure();
+            break;
+          case RTCDataChannelState.RTCDataChannelClosed:
+            _onConnectionFailure();
+            break;
+        }
+      };
     };
-    dataChannel!.onDataChannelState = (state) {
-      print("Data channel state: $state");
+
+    // Setting the dataChannel Object -> JOIN
+    // Only triggered if he joins to a connection
+    _peerConnection!.onDataChannel = (channel) {
+      _dataChannel = channel;
+      initDataChannelEvents();
     };
+
+    // Creating the dataChannel Object -> HOST
+    if (_isHost) {
+      _dataChannel = await _peerConnection!
+          .createDataChannel('dataChannel', RTCDataChannelInit());
+      initDataChannelEvents();
+    }
+    return;
   }
 
-  /// Sends a message through the RTCDataChannel (dataChannel)
-  Future<void> sendMessage(String message) async {
-    await dataChannel!.send(RTCDataChannelMessage(message));
-    print("ME: " + message);
+  /// Generates a 4 digit game code
+  String _genGameCode() {
+    String code = "";
+    for (int i = 0; i < 4; i++) {
+      code += Random().nextInt(10).toString();
+    }
+    return code;
+  }
+
+  /// Sends the given data via the data channel
+  Future<void> sendData(String data) async {
+    if (_dataChannel?.state == RTCDataChannelState.RTCDataChannelOpen) {
+      await _dataChannel?.send(RTCDataChannelMessage(data));
+    }
+    return;
+  }
+
+  /// Called everytime anything happends related to a successfull connection
+  void _onConnectionEstablished() async {
+    if (_isHost) {
+      await _rltdb.ref('games/$_gameCode').remove();
+    }
+  }
+
+  /// Called everytime anything happends related to a connection failure
+  void _onConnectionFailure() async {
+    connectionFailed?.call();
+    await dispose();
+    if (_isHost) {
+      await createGame();
+    }
+  }
+
+  /// GET AND SET METHODS ///
+
+  void setOnData(Function(String) onData) {
+    this._onData = onData;
+  }
+
+  void setOnPeerConnectionState(
+      Function(RTCPeerConnectionState) onPeerConnectionState) {
+    this._onPeerConnectionState = onPeerConnectionState;
+  }
+
+  void setOnDataChannelState(Function(RTCDataChannelState) onDataChannelState) {
+    this._onDataChannelState = onDataChannelState;
+  }
+
+  void setOnNewGameCode(Function(String) onNewGameCode) {
+    this._onNewGameCode = onNewGameCode;
+  }
+
+  /// REMOVES EVERYTHING ///
+  Future<void> dispose() async {
+    // connectionFailed?.call(); // IDK if I should call it on dispose, cause it is some kind of connection failure
+
+    for (var listener in _rltdbListener) {
+      await listener.cancel();
+    }
+    _rltdbListener.clear();
+
+    await _dataChannel?.close();
+    _dataChannel = null;
+
+    await _peerConnection?.close();
+    await _peerConnection?.dispose();
+    _peerConnection = null;
+
+    if (_isHost) {
+      // Remove Entire game entry as the HOST
+      await _rltdb.ref('games/$_gameCode').remove();
+    } else {
+      // Remove everything you wrote
+      await _rltdb.ref('games/$_gameCode/answer').remove();
+      await _rltdb.ref('games/$_gameCode/candidates/receiver').remove();
+    }
   }
 }
