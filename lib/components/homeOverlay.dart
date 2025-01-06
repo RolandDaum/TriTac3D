@@ -141,12 +141,44 @@ class _HomeoverlayState extends State<Homeoverlay>
           reversedCount--;
           if (reversedCount == 0) {
             _acControllers[popUpType]?.forward().whenComplete(() {
-              currentPopUpType = popUpType;
+              setState(() {
+                currentPopUpType = popUpType;
+              });
             });
           }
         });
       }
     });
+  }
+
+  Widget _buildPopup(acPopUpTypes popUpType) {
+    switch (popUpType) {
+      case acPopUpTypes.gameButton:
+        return SlideTransition(
+          position: _gameButtonAnimation,
+          child: Homebuttonspopup(switchToPopUp: switchToPopUp),
+        );
+      case acPopUpTypes.gameSetting:
+        return SlideTransition(
+          position: _gameSettingAnimation,
+          child: Gamesettingspopup(switchToPopUp: switchToPopUp),
+        );
+      case acPopUpTypes.gameConnection:
+        return SlideTransition(
+          position: _gameConnectionAnimation,
+          child: Gameconnectionpopup(switchToPopUp: switchToPopUp),
+        );
+      case acPopUpTypes.gameConnectionHost:
+        return SlideTransition(
+          position: _gameConnectionHostAnimation,
+          child: Gameconnectionpopuphost(switchToPopUp: switchToPopUp),
+        );
+      case acPopUpTypes.gameConnectionJoin:
+        return SlideTransition(
+          position: _gameConnectionJoinAnimation,
+          child: Gameconnectionpopupjoin(switchToPopUp: switchToPopUp),
+        );
+    }
   }
 
   @override
@@ -186,51 +218,8 @@ class _HomeoverlayState extends State<Homeoverlay>
           bottom: 0,
           left: 0,
           right: 0,
-          child: SlideTransition(
-            position: _gameButtonAnimation,
-            child: Homebuttonspopup(switchToPopUp: switchToPopUp),
-          ),
+          child: _buildPopup(currentPopUpType),
         ),
-        Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: SlideTransition(
-              position: _gameSettingAnimation,
-              child: Gamesettingspopup(
-                switchToPopUp: switchToPopUp,
-              ),
-            )),
-        Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: SlideTransition(
-              position: _gameConnectionAnimation,
-              child: Gameconnectionpopup(
-                switchToPopUp: switchToPopUp,
-              ),
-            )),
-        Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: SlideTransition(
-              position: _gameConnectionHostAnimation,
-              child: Gameconnectionpopuphost(
-                switchToPopUp: switchToPopUp,
-              ),
-            )),
-        Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: SlideTransition(
-              position: _gameConnectionJoinAnimation,
-              child: Gameconnectionpopupjoin(
-                switchToPopUp: switchToPopUp,
-              ),
-            )),
       ],
     );
   }

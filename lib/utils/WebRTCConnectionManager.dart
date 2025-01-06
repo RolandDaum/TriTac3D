@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 class WebRTCConnectionManager {
-  late RTCPeerConnection peerConnection;
-  late RTCDataChannel dataChannel;
-  late RTCSessionDescription sdp; // Local Description (offer/answer)
+  RTCPeerConnection? peerConnection;
+  RTCDataChannel? dataChannel;
+  RTCSessionDescription? sdp; // Local Description (offer/answer)
 
   /// Constraints for the local description (offer/answer)
   /// Used when in createOffer() and createAnswer() methods
@@ -16,11 +16,20 @@ class WebRTCConnectionManager {
     },
     'optional': [],
   };
+  Future<void> dispose() async {
+    await dataChannel?.close();
+    await peerConnection?.close();
+    await peerConnection?.dispose();
+    peerConnection = null;
+    dataChannel = null;
+    sdp = null;
+    print("RTCPeerConnectio has been disposed sucessfully");
+  }
 
   /// Creates a new RTCPeerConnection (peerConnection)
   /// Creates a new RTCDataChannel (dataChannel)
   /// Creates a LOCAL description (offer) which is later copied to the clipboard
-  Future<void> offerConnection() async {
+  Future<String> offerConnection() async {
     // RTCPeerConnection
     peerConnection = await _createPeerConnection();
 
@@ -29,36 +38,47 @@ class WebRTCConnectionManager {
 
     // Local RTCSessionDescription (offer)
     RTCSessionDescription offer =
-        await peerConnection.createOffer(_OFLocalDescriptionConstrains);
-    await peerConnection.setLocalDescription(offer);
-    _sdpChanged(); // Copies offer (local Description) to the clipboard
+        await peerConnection!.createOffer(_OFLocalDescriptionConstrains);
+    await peerConnection!.setLocalDescription(offer).then((value) {
+      print("LOCAL DESCRIPTION HAS BEEN SET SUCCESSFULLY");
+    });
+    // _sdpChanged(); // Copies offer (local Description) to the clipboard
 
-    print("Created offer");
+    RTCSessionDescription sdp = (await peerConnection!.getLocalDescription())!;
+
+    print("OFFER SDP");
+    print(sdp.sdp.toString());
+    return (json.encode(sdp.toMap()));
   }
 
   /// Creates a new RTCPeerConnection (peerConnection)
   /// Sets the REMOTE description (offer)
   /// Creates a new LOCAL description (answer) which is later copied to the clipboard
-  Future<void> answerConnection(RTCSessionDescription offer) async {
+  Future<String> answerConnection(RTCSessionDescription offer) async {
+    print("OFFER SDP:");
+    print(offer.sdp.toString());
     // RTCPeerConnection
     peerConnection = await _createPeerConnection();
 
     // Sets the REMOTE description (offer)
-    await peerConnection.setRemoteDescription(offer);
+    await peerConnection!.setRemoteDescription(offer);
 
     // Creates a new LOCAL description (answer)
     final answer =
-        await peerConnection.createAnswer(_OFLocalDescriptionConstrains);
-    await peerConnection.setLocalDescription(answer);
-    _sdpChanged();
+        await peerConnection!.createAnswer(_OFLocalDescriptionConstrains);
+    await peerConnection!.setLocalDescription(answer);
+    // _sdpChanged();
 
-    print("Created Answer");
+    RTCSessionDescription sdp = (await peerConnection!.getLocalDescription())!;
+    print("ANSWER SDP:");
+    print(sdp.sdp.toString());
+    return (json.encode(sdp.toMap()));
   }
 
   /// Sets the REMOTE description (answer)
   Future<void> acceptAnswer(RTCSessionDescription answer) async {
     // Sets the REMOTE description (answer)
-    await peerConnection.setRemoteDescription(answer);
+    await peerConnection!.setRemoteDescription(answer);
 
     print("Answer Accepted");
   }
@@ -69,12 +89,20 @@ class WebRTCConnectionManager {
     Map<String, dynamic> config = {
       'iceServers': [
         {
-          'urls': "stun:stun.l.google.com:19302",
+          'urls': [
+            // "stun:stun.l.google.com:19302",
+            'stun:stun1.l.google.com:19302',
+            'stun:stun2.l.google.com:19302',
+            "stun:stun3.l.google.com:19302",
+            "stun:stun4.l.google.com:19302",
+            'stun:stun.stunprotocol.org:3478',
+            'stun:stun.voipstunt.com:3478'
+          ]
         }
       ]
     };
 
-    final connection = await createPeerConnection(config);
+    final RTCPeerConnection connection = await createPeerConnection(config);
 
     // Event Methods
     connection.onIceCandidate = (candidate) {
@@ -87,6 +115,10 @@ class WebRTCConnectionManager {
           channel); // Adds the RTCDataChannel to the dataChannel class variable
     };
     connection.onIceConnectionState = (state) {
+      if (state == RTCIceConnectionState.RTCIceConnectionStateFailed ||
+          state == RTCIceConnectionState.RTCIceConnectionStateClosed) {
+        dispose();
+      }
       print("ICE connection state: $state");
     };
     connection.onSignalingState = (state) {
@@ -98,16 +130,16 @@ class WebRTCConnectionManager {
 
   /// Copies the local Description (SDP) (offer/answer) to the clipboard.
   void _sdpChanged() async {
-    sdp = (await peerConnection.getLocalDescription())!;
-    Clipboard.setData(ClipboardData(text: json.encode(sdp.toMap())));
-    print("${sdp.type} SDP is coppied to the clipboard");
+    sdp = (await peerConnection!.getLocalDescription())!;
+    Clipboard.setData(ClipboardData(text: json.encode(sdp!.toMap())));
+    print("${sdp!.type} SDP is coppied to the clipboard");
   }
 
   /// Creates a new RTCDataChannel
   Future<void> createRTCDataChannel() async {
     RTCDataChannelInit dataChannelDict = RTCDataChannelInit();
-    RTCDataChannel channel = await peerConnection.createDataChannel(
-        "textchat-chan", dataChannelDict);
+    RTCDataChannel channel = await peerConnection!
+        .createDataChannel("textchat-chan", dataChannelDict);
     print("Created data channel");
     addRTCDataChannel(channel);
   }
@@ -115,17 +147,17 @@ class WebRTCConnectionManager {
   /// Sets the object RTCDataChannel to the dataChannel variable and defines some event methods
   void addRTCDataChannel(RTCDataChannel channel) {
     dataChannel = channel;
-    dataChannel.onMessage = (data) {
+    dataChannel!.onMessage = (data) {
       print("OTHER: " + data.text);
     };
-    dataChannel.onDataChannelState = (state) {
+    dataChannel!.onDataChannelState = (state) {
       print("Data channel state: $state");
     };
   }
 
   /// Sends a message through the RTCDataChannel (dataChannel)
   Future<void> sendMessage(String message) async {
-    await dataChannel.send(RTCDataChannelMessage(message));
+    await dataChannel!.send(RTCDataChannelMessage(message));
     print("ME: " + message);
   }
 }
