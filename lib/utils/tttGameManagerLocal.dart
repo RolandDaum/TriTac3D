@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:tritac3d/utils/tttGameManager.dart';
 
 class TTTGameManagerLocal implements TTTGameManager {
@@ -9,5 +11,15 @@ class TTTGameManagerLocal implements TTTGameManager {
   @override
   void setGameController(controller) {
     // TODO: implement setGameController
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+  }
+
+  @override
+  void setOnGameEnd(VoidCallback onGameEnd) {
+    // TODO: implement setOnGameEnd
   }
 }

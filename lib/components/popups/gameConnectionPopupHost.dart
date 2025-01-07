@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:tritac3d/components/homeOverlay.dart';
+import 'package:tritac3d/components/gameOverlay.dart';
 import 'package:tritac3d/components/tttButton.dart';
 import 'package:tritac3d/utils/WebRTCConnectionManager.dart';
 import 'package:tritac3d/utils/appDesign.dart';
+import 'package:tritac3d/utils/tttGameManager.dart';
+import 'package:tritac3d/utils/tttGameManagerRTC.dart';
 
 class Gameconnectionpopuphost extends StatefulWidget {
   final Function(acPopUpTypes type) switchToPopUp;
+  final Function(TTTGameManager?) onTTTGameManagerCreation;
 
-  const Gameconnectionpopuphost({super.key, required this.switchToPopUp});
+  Gameconnectionpopuphost(
+      {super.key,
+      required this.switchToPopUp,
+      required this.onTTTGameManagerCreation});
 
   @override
   State<Gameconnectionpopuphost> createState() =>
@@ -33,18 +39,20 @@ class _GameconnectionpopuphostState extends State<Gameconnectionpopuphost>
       print("");
       print("");
     };
-    webRTCConnectionManager.createGame()
-        // .then((gameCode) {
-        //   setState(() {
-        //     this._gameCode = gameCode;
-        //   });
-        // })
-        ;
+    webRTCConnectionManager.createGame();
     webRTCConnectionManager.setOnNewGameCode((gameCode) {
       setState(() {
         this._gameCode = gameCode;
       });
     });
+    webRTCConnectionManager.connectionEstablished = () {
+      widget.onTTTGameManagerCreation
+          .call(TTTGameManagerRTC(webRTCConnectionManager));
+      widget.switchToPopUp(acPopUpTypes.gamePlay);
+    };
+    webRTCConnectionManager.connectionFailed = () {
+      widget.onTTTGameManagerCreation.call(null);
+    };
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1500),
@@ -55,7 +63,7 @@ class _GameconnectionpopuphostState extends State<Gameconnectionpopuphost>
 
   @override
   void dispose() {
-    webRTCConnectionManager.dispose();
+    // webRTCConnectionManager.dispose();
     _controller.dispose();
 
     super.dispose();

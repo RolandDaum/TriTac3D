@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:tritac3d/components/homeOverlay.dart';
+import 'package:tritac3d/components/gameOverlay.dart';
 import 'package:tritac3d/components/scrollSelector.dart';
 import 'package:tritac3d/components/tttButton.dart';
 import 'package:tritac3d/utils/WebRTCConnectionManager.dart';
 import 'package:tritac3d/utils/appDesign.dart';
+import 'package:tritac3d/utils/tttGameManager.dart';
+import 'package:tritac3d/utils/tttGameManagerRTC.dart';
 
 class Gameconnectionpopupjoin extends StatefulWidget {
   final Function(acPopUpTypes type) switchToPopUp;
+  final Function(TTTGameManager?) onTTTGameManagerCreation;
 
-  Gameconnectionpopupjoin({super.key, required this.switchToPopUp});
+  Gameconnectionpopupjoin(
+      {super.key,
+      required this.switchToPopUp,
+      required this.onTTTGameManagerCreation});
 
   @override
   _GameconnectionpopupjoinState createState() =>
@@ -30,6 +36,9 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
       print(" - C O N N E C T E D - ");
       print("");
       print("");
+      widget.onTTTGameManagerCreation
+          .call(TTTGameManagerRTC(webRTCConnectionManager));
+      widget.switchToPopUp(acPopUpTypes.gamePlay);
     };
     webRTCConnectionManager.connectionFailed = () {
       print("");
@@ -37,13 +46,13 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
       print(" - F A I L E D - ");
       print("");
       print("");
+      widget.onTTTGameManagerCreation.call(null);
     };
     super.initState();
   }
 
   @override
   void dispose() {
-    webRTCConnectionManager.dispose();
     super.dispose();
   }
 

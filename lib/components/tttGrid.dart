@@ -22,6 +22,7 @@ class _TTTGridState extends State<TTTGrid> {
   @override
   Widget build(BuildContext context) {
     final appDesign = Provider.of<Appdesign>(context);
+    int nGS = widget.gameController.getGameSettings().getGFSize();
     return Container(
       height: appDesign.layerWidth,
       width: appDesign.layerWidth,
@@ -35,19 +36,15 @@ class _TTTGridState extends State<TTTGrid> {
         shrinkWrap: false,
         clipBehavior: Clip.none,
         padding: const EdgeInsets.all(0),
-        itemCount: pow(widget.gameController.nGS, 2).toInt(),
+        itemCount: pow(nGS, 2).toInt(),
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: widget.gameController.nGS,
-            mainAxisSpacing: 0,
-            crossAxisSpacing: 0),
+            crossAxisCount: nGS, mainAxisSpacing: 0, crossAxisSpacing: 0),
         itemBuilder: (context, index) {
           return TTTField(
             gameController: widget.gameController,
-            cordID: Vector3(
-                index % widget.gameController.nGS.toDouble(),
-                (index / widget.gameController.nGS).floor().toDouble(),
-                widget.gridID),
+            cordID: Vector3(index % nGS.toDouble(),
+                (index / nGS).floor().toDouble(), widget.gridID),
           );
         },
       ),

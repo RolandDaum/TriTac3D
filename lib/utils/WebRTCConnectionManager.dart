@@ -23,6 +23,7 @@ class WebRTCConnectionManager {
   Function(String)? _onNewGameCode;
   VoidCallback? connectionEstablished;
   VoidCallback? connectionFailed;
+  bool _onceConnected = false;
 
   /// - M E T H O D S - ///
 
@@ -257,6 +258,7 @@ class WebRTCConnectionManager {
 
   /// Called everytime anything happends related to a successfull connection
   void _onConnectionEstablished() async {
+    _onceConnected = true;
     if (_isHost) {
       await _rltdb.ref('games/$_gameCode').remove();
     }
@@ -265,9 +267,11 @@ class WebRTCConnectionManager {
   /// Called everytime anything happends related to a connection failure
   void _onConnectionFailure() async {
     connectionFailed?.call();
-    await dispose();
-    if (_isHost) {
-      await createGame();
+    if (!_onceConnected) {
+      await dispose();
+      if (_isHost) {
+        await createGame();
+      }
     }
   }
 

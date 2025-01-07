@@ -1,7 +1,7 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:tritac3d/components/tttField.dart';
+import 'package:tritac3d/utils/tttGameSettings.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:vibration/vibration.dart';
 
@@ -15,7 +15,7 @@ class TTTGameFieldState {
 }
 
 class TTTGameController with ChangeNotifier {
-  int nGS = 3;
+  TTTGameSettings _gameSettings = TTTGameSettings();
   Vector3 _lastMove = Vector3(0, 0, 0);
   TTTFS _lastFieldState =
       TTTFS.empty; // Might later be used as the player who starts
@@ -24,30 +24,28 @@ class TTTGameController with ChangeNotifier {
   double _layerRotation = 45.0;
   int _activeLayer = 0;
   bool hasVibrator = false;
-  final double defaultRotation = 55.0;
-  bool backgroundMode = false;
+  bool _backgroundMode = false;
+  Function(bool)? _onBackgroundModeChange;
 
   /// Layer (top -> bottom)
-  /// Colum/Row
-  /// Colum/Row
   late List<List<List<TTTGameFieldState>>> gameState;
 
   TTTGameController() {
     init();
   }
-  Future<void> init() async {
+  void init() async {
+    _gameSettings.setOnGFSizeChange((size) => resetGame());
     _lastFieldState = Random().nextBool() ? TTTFS.cricle : TTTFS.cross;
+
     resetGame();
-    setBackgroundMode();
+    setBackgroundMode(true);
 
     hasVibrator = (await Vibration.hasVibrator())!;
   }
 
-  void startGame() {}
-
   /// returns true if layer has changed
   bool setActiveLayer(int layer) {
-    if (layer < nGS && _activeLayer != layer) {
+    if (layer < _gameSettings.getGFSize() && _activeLayer != layer) {
       _activeLayer = layer;
       if (hasVibrator) {
         Vibration.vibrate(duration: 32, amplitude: 64);
@@ -67,11 +65,6 @@ class TTTGameController with ChangeNotifier {
 
   double getLayerRotation() {
     return _layerRotation;
-  }
-
-  void setGameSize(int size) {
-    nGS = size;
-    resetGame();
   }
 
   TTTFS getFieldState(Vector3 field) {
@@ -120,7 +113,7 @@ class TTTGameController with ChangeNotifier {
     Vector3 point = win.point;
     Vector3 direction = win.direction;
 
-    for (int i = 0; i < nGS; i++) {
+    for (int i = 0; i < _gameSettings.getGFSize(); i++) {
       int x = (point.x + i * direction.x).toInt();
       int y = (point.y + i * direction.y).toInt();
       int z = (point.z + i * direction.z).toInt();
@@ -133,21 +126,30 @@ class TTTGameController with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Clears the entire gameState
-  void resetGame() {
-    backgroundMode = false;
+  /// Clears the entire gameState and refocus layer if necessary
+  void clearGame() {
+    int nGS = _gameSettings.getGFSize();
     gameState = List.generate(
         nGS,
-        (_) => List.generate(nGS,
+        (_) => List.generate(_gameSettings.getGFSize(),
             (_) => List.generate(nGS, (_) => TTTGameFieldState(TTTFS.empty))));
-    setActiveLayer(((nGS - 1) / 2).round());
-    setLayerRotation(defaultRotation);
+    if (_activeLayer > (nGS - 1)) {
+      setActiveLayer(((nGS - 1) / 2).round());
+    }
+    updateGameUI();
+  }
+
+  /// Resets the entiry gameState
+  void resetGame() {
+    clearGame();
+    setLayerRotation(_gameSettings.getDefaultRotation());
     updateGameUI();
   }
 
   /// Resets and fills the gameState with random TTTFS states based on the given chance
   void setRandomGame(double chance) {
-    resetGame();
+    int nGS = _gameSettings.getGFSize();
+    clearGame();
     for (int x = 0; x < nGS; x++) {
       for (int y = 0; y < nGS; y++) {
         for (int z = 0; z < nGS; z++) {
@@ -162,12 +164,39 @@ class TTTGameController with ChangeNotifier {
     updateGameUI();
   }
 
-  void setBackgroundMode() {
-    setRandomGame(0.5);
-    setActiveLayer(nGS - 2);
-    setLayerRotation(defaultRotation);
-    backgroundMode = true;
+  /// - GET n' SET - ///
+
+  void setBackgroundMode(bool state) {
+    _backgroundMode = state;
+    _onBackgroundModeChange?.call(_backgroundMode);
+    if (_backgroundMode) {
+      setRandomGame(0.5);
+      setActiveLayer(_gameSettings.getGFSize() - 2);
+      setLayerRotation(_gameSettings.getDefaultRotation());
+    } else {
+      resetGame();
+    }
     updateGameUI();
+  }
+
+  bool getBackgroundMode() {
+    return this._backgroundMode;
+  }
+
+  void setOnBackgroundModeChange(Function(bool) fnc) {
+    this._onBackgroundModeChange = fnc;
+  }
+
+  TTTGameSettings getGameSettings() {
+    return this._gameSettings;
+  }
+
+  int getWinsX() {
+    return this._winsx.length;
+  }
+
+  int getWinsO() {
+    return this._winso.length;
   }
 
   /// Fins all possible wins in the cubic game field and safes them in calss win object
@@ -208,6 +237,7 @@ class TTTGameController with ChangeNotifier {
     int z = _lastMove.z.toInt();
 
     List<_WIN> wins = [];
+    int nGS = _gameSettings.getGFSize();
     // TODO: Check if the point is even on the line -> Works either way, cause were checking only the last played symbol -> but there might be some unncessery checks -> not to heavy on small cubes
     // (1 0 0)
     for (int i = 0; i < nGS; i++) {
@@ -323,6 +353,8 @@ class TTTGameController with ChangeNotifier {
     if (wins.isEmpty) {
       return;
     }
+    // TODO: SOMEWHERE AFTER HERE MUST BE A MISTAKE -> WINS GET ADDED TO BOTH _winso and _winsx or something else -> CHECK !!!
+
     // Merges the existing and new wins togther while removing duplicates
     if (_lastFieldState == TTTFS.cricle) {
       _winso = <_WIN>{..._winso, ...wins}.toList();
@@ -335,6 +367,7 @@ class TTTGameController with ChangeNotifier {
 
   @override
   String toString() {
+    int nGS = _gameSettings.getGFSize();
     String game = "";
     for (int x = 0; x < nGS; x++) {
       for (int y = 0; y < nGS; y++) {

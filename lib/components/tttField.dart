@@ -24,14 +24,13 @@ class _TTTFieldSState extends State<TTTField> {
 
   @override
   void initState() {
+    int nGS = widget.gameController.getGameSettings().getGFSize();
     state = Random().nextBool();
     final isTopLeft = widget.cordID.x == 0 && widget.cordID.y == 0;
-    final isBottomLeft = widget.cordID.x == 0 &&
-        widget.cordID.y == widget.gameController.nGS - 1;
-    final isTopRight = widget.cordID.x == widget.gameController.nGS - 1 &&
-        widget.cordID.y == 0;
-    final isBottomRight = widget.cordID.x == widget.gameController.nGS - 1 &&
-        widget.cordID.y == widget.gameController.nGS - 1;
+    final isBottomLeft = widget.cordID.x == 0 && widget.cordID.y == nGS - 1;
+    final isTopRight = widget.cordID.x == nGS - 1 && widget.cordID.y == 0;
+    final isBottomRight =
+        widget.cordID.x == nGS - 1 && widget.cordID.y == nGS - 1;
 
     borderRadius = BorderRadius.only(
       topLeft: isTopLeft ? const Radius.circular(20) : Radius.zero,
@@ -45,8 +44,7 @@ class _TTTFieldSState extends State<TTTField> {
 
   @override
   Widget build(BuildContext context) {
-    final appDesign = Provider.of<Appdesign>(context),
-        gameController = Provider.of<TTTGameController>(context);
+    final appDesign = Provider.of<Appdesign>(context);
 
     CustomPainter? getFieldPainer(TTTFS state) {
       switch (state) {
@@ -59,7 +57,8 @@ class _TTTFieldSState extends State<TTTField> {
       }
     }
 
-    double fieldLength = appDesign.layerWidth / gameController.nGS;
+    double fieldLength = appDesign.layerWidth /
+        widget.gameController.getGameSettings().getGFSize();
     return GestureDetector(
       onTap: () {
         widget.gameController.registeredMoveEvent(widget.cordID);

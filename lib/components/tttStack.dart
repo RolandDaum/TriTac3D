@@ -21,12 +21,11 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
 
   @override
   void initState() {
-    super.initState();
-
     final gameController =
             Provider.of<TTTGameController>(context, listen: false),
         appDesign = Provider.of<Appdesign>(context, listen: false);
 
+    /// ROTATION CONTROLLER
     rotationController = AnimationController(
       lowerBound: double.negativeInfinity,
       upperBound: double.infinity,
@@ -35,27 +34,27 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
       vsync: this,
     );
 
-    // Run background animation if background mode is enabled
-    if (gameController.backgroundMode) {
+    // CHANGES DEPENTEING ON BACKGROUND MODE STATE
+    void Function() enableBackgroundAnimation = () {
       rotationController.repeat(
-          min: gameController.getLayerRotation(),
-          max: gameController.getLayerRotation() + 360,
-          period: Duration(seconds: appDesign.backgroundModeRotationTime),
-          count: 1);
-      rotationController.addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          gameController.setActiveLayer(
-              ((Random().nextDouble() * (gameController.nGS))).round());
-          rotationController.repeat(
-              min: gameController.getLayerRotation(),
-              max: gameController.getLayerRotation() + 360,
-              period: Duration(seconds: appDesign.backgroundModeRotationTime),
-              count: 1);
-        }
-      });
+        min: gameController.getLayerRotation(),
+        max: gameController.getLayerRotation() + 360,
+        period: Duration(seconds: appDesign.backgroundModeRotationTime),
+      );
+    };
+    if (gameController.getBackgroundMode()) {
+      enableBackgroundAnimation();
+    } else {
+      rotationController.stop();
     }
-
-    verticalPosController = AnimationController(value: 0, vsync: this);
+    gameController.setOnBackgroundModeChange((state) {
+      if (state) {
+        enableBackgroundAnimation();
+      } else {
+        rotationController.stop();
+      }
+    });
+    super.initState();
   }
 
   @override
@@ -66,18 +65,28 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
             Provider.of<TTTGameController>(context, listen: false),
         appDesign = Provider.of<Appdesign>(context, listen: false);
 
+    int nGS = gameController.getGameSettings().getGFSize();
+
+    /// VERTICAL SCROLL CONTROLLER
     verticalPosController = AnimationController(
         lowerBound: (MediaQuery.of(context).size.height / 2) -
-            (gameController.nGS) * appDesign.gridDistance,
+            (nGS) * appDesign.gridDistance,
         upperBound: (MediaQuery.of(context).size.height / 2),
         value: 0,
         vsync: this);
 
     verticalPosController.value = (MediaQuery.of(context).size.height / 2) -
-        (gameController.nGS - gameController.getActiveLayer()) *
-            appDesign.gridDistance;
+        (nGS - gameController.getActiveLayer()) * appDesign.gridDistance;
 
     focusOnLayer(gameController.getActiveLayer());
+    // verticalPosController = AnimationController(value: 0, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    rotationController.dispose();
+    verticalPosController.dispose();
+    super.dispose();
   }
 
   /// Methode zum Setzen und Animieren des Drehwinkels
@@ -107,26 +116,17 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
     final gameController =
             Provider.of<TTTGameController>(context, listen: false),
         appDesign = Provider.of<Appdesign>(context, listen: false);
+    int nGS = gameController.getGameSettings().getGFSize();
 
-    // double relativePosition = 1 /
-    //     ((verticalPosController.upperBound +
-    //             verticalPosController.lowerBound.abs()) /
-    //         2) *
-    //     ((verticalPosController.value - verticalPosController.lowerBound)
-    //         .abs());
-    // if (relativePosition > 1) {
-    //   relativePosition = 1;
-    // }
-    // int value = ((gameController.nGS - 1) / 1 * relativePosition).round();
     if (dyLastLayerFocusChange.abs() >= (appDesign.gridDistance)) {
       if (dyLastLayerFocusChange < 0) {
         return gameController.getActiveLayer() - 1 >= 0
             ? gameController.getActiveLayer() - 1
             : 0;
       } else {
-        return gameController.getActiveLayer() + 1 < gameController.nGS
+        return gameController.getActiveLayer() + 1 < nGS
             ? gameController.getActiveLayer() + 1
-            : gameController.nGS - 1;
+            : nGS - 1;
       }
     } else {
       return gameController.getActiveLayer();
@@ -143,8 +143,10 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
   Future<void> focusOnLayer(int layerID) async {
     final appDesign = Provider.of<Appdesign>(context, listen: false),
         gameController = Provider.of<TTTGameController>(context, listen: false);
+
     verticalPosController.value = (MediaQuery.of(context).size.height / 2) -
-        (gameController.nGS - layerID) * appDesign.gridDistance;
+        (gameController.getGameSettings().getGFSize() - layerID) *
+            appDesign.gridDistance;
   }
 
   Future<void> focusOnLayerAnimated(int layerID) async {
@@ -153,7 +155,8 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
 
     verticalPosController.animateTo(
         (MediaQuery.of(context).size.height / 2) -
-            (gameController.nGS - layerID) * appDesign.gridDistance,
+            (gameController.getGameSettings().getGFSize() - layerID) *
+                appDesign.gridDistance,
         duration: const Duration(
           milliseconds: 250,
           // 250 * ((gameController.getActiveLayer() - layerID).abs()) + 1),
@@ -164,19 +167,20 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final appDesign = Provider.of<Appdesign>(context);
-    final gameController = Provider.of<TTTGameController>(context);
+    final appDesign = Provider.of<Appdesign>(context),
+        gameController = Provider.of<TTTGameController>(context);
+    int nGS = gameController.getGameSettings().getGFSize();
 
     List<Widget> tttGrids = [];
 
-    for (int i = 0; i < gameController.nGS; i++) {
+    for (int i = 0; i < nGS; i++) {
       tttGrids.add(
         AnimatedBuilder(
           animation:
               Listenable.merge([rotationController, verticalPosController]),
           builder: (context, child) {
             return Positioned(
-              top: appDesign.gridDistance * (gameController.nGS - i - 1) +
+              top: appDesign.gridDistance * (nGS - i - 1) +
                   verticalPosController.value +
                   (i <= gameController.getActiveLayer()
                       ? appDesign.gridDistance / 2
@@ -240,12 +244,5 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
       alignment: Alignment.center,
       children: tttGrids,
     );
-  }
-
-  @override
-  void dispose() {
-    rotationController.dispose();
-    verticalPosController.dispose();
-    super.dispose();
   }
 }

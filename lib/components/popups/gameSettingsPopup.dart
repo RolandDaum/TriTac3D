@@ -1,15 +1,19 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:tritac3d/components/homeOverlay.dart';
+import 'package:tritac3d/components/gameOverlay.dart';
 import 'package:tritac3d/components/tttButton.dart';
 import 'package:tritac3d/utils/appDesign.dart';
+import 'package:tritac3d/utils/tttGameController.dart';
+import 'package:tritac3d/utils/tttGameSettings.dart';
 import 'package:vibration/vibration.dart';
 
 class Gamesettingspopup extends StatefulWidget {
   final Function(acPopUpTypes type) switchToPopUp;
 
-  const Gamesettingspopup({super.key, required this.switchToPopUp});
+  Gamesettingspopup({super.key, required this.switchToPopUp});
 
   @override
   State<Gamesettingspopup> createState() => _GamesettingspopupState();
@@ -18,7 +22,9 @@ class Gamesettingspopup extends StatefulWidget {
 class _GamesettingspopupState extends State<Gamesettingspopup> {
   @override
   Widget build(BuildContext context) {
-    final Appdesign appDesign = Provider.of<Appdesign>(context);
+    final appDesign = Provider.of<Appdesign>(context),
+        gameController = Provider.of<TTTGameController>(context);
+    TTTGameSettings gameSettigns = gameController.getGameSettings();
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 40).copyWith(bottom: 40),
       padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
@@ -36,16 +42,22 @@ class _GamesettingspopupState extends State<Gamesettingspopup> {
           ),
           SizedBox(height: 20),
           _settingSlider(
-            min: 3,
-            max: 6,
+            onChanged: (size) {
+              gameSettigns.setGFSize(size.toInt());
+            },
+            min: gameSettigns.getMinGFSize().toDouble(),
+            max: gameSettigns.getMaxGFSize().toDouble(),
             description: "gamefield size",
             iconpath: "assets/icons/icon_grid.svg",
             title: "%s x %s x %s",
           ),
           SizedBox(height: 20),
           _settingSlider(
-            min: 1,
-            max: 10,
+            onChanged: (wins) {
+              gameSettigns.setRequiredWins(wins.toInt());
+            },
+            min: gameSettigns.getMinWins().toDouble(),
+            max: gameSettigns.getMaxWins().toDouble(),
             title: "%s x",
             description: "minimum wins",
             iconpath: "assets/icons/icon_crown.svg",
@@ -134,6 +146,9 @@ class _settingSliderState extends State<_settingSlider> {
   @override
   Widget build(BuildContext context) {
     final Appdesign appDesign = Provider.of<Appdesign>(context);
+    if (_value > widget.max) {
+      _value = widget.max;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
