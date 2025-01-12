@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tritac3d/utils/appDesign.dart';
@@ -19,32 +18,30 @@ class TTTField extends StatefulWidget {
 }
 
 class _TTTFieldSState extends State<TTTField> {
-  bool state = false;
   BorderRadiusGeometry borderRadius = const BorderRadius.all(Radius.zero);
 
-  @override
-  void initState() {
+  void updateBorderRadius() {
     int nGS = widget.gameController.getGameSettings().getGFSize();
-    state = Random().nextBool();
     final isTopLeft = widget.cordID.x == 0 && widget.cordID.y == 0;
     final isBottomLeft = widget.cordID.x == 0 && widget.cordID.y == nGS - 1;
     final isTopRight = widget.cordID.x == nGS - 1 && widget.cordID.y == 0;
     final isBottomRight =
         widget.cordID.x == nGS - 1 && widget.cordID.y == nGS - 1;
 
-    borderRadius = BorderRadius.only(
-      topLeft: isTopLeft ? const Radius.circular(20) : Radius.zero,
-      bottomLeft: isBottomLeft ? const Radius.circular(20) : Radius.zero,
-      topRight: isTopRight ? const Radius.circular(20) : Radius.zero,
-      bottomRight: isBottomRight ? const Radius.circular(20) : Radius.zero,
-    );
-
-    super.initState();
+    setState(() {
+      borderRadius = BorderRadius.only(
+        topLeft: isTopLeft ? const Radius.circular(20) : Radius.zero,
+        bottomLeft: isBottomLeft ? const Radius.circular(20) : Radius.zero,
+        topRight: isTopRight ? const Radius.circular(20) : Radius.zero,
+        bottomRight: isBottomRight ? const Radius.circular(20) : Radius.zero,
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final appDesign = Provider.of<Appdesign>(context);
+    updateBorderRadius();
 
     CustomPainter? getFieldPainer(TTTFS state) {
       switch (state) {
@@ -75,12 +72,12 @@ class _TTTFieldSState extends State<TTTField> {
                     ? appDesign.fontActive
                     : appDesign.fontInactive,
                 width: 1)),
-        child: Center(
-          child: CustomPaint(
-            size: Size(fieldLength - 10, fieldLength - 10),
-            painter: getFieldPainer(
-                widget.gameController.getFieldState(widget.cordID)),
-          ),
+        child:
+            // Center(child: Text(widget.cordID.toString())
+            CustomPaint(
+          size: Size(fieldLength - 10, fieldLength - 10),
+          painter: getFieldPainer(
+              widget.gameController.getField(widget.cordID).getState()),
         ),
       ),
     );

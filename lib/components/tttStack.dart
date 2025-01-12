@@ -165,84 +165,82 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
         curve: Curves.bounceInOut);
   }
 
-  @override
-  Widget build(BuildContext context) {
+  List<Widget> _buildTTTGridStack() {
     final appDesign = Provider.of<Appdesign>(context),
         gameController = Provider.of<TTTGameController>(context);
     int nGS = gameController.getGameSettings().getGFSize();
 
-    List<Widget> tttGrids = [];
-
-    for (int i = 0; i < nGS; i++) {
-      tttGrids.add(
-        AnimatedBuilder(
-          animation:
-              Listenable.merge([rotationController, verticalPosController]),
-          builder: (context, child) {
-            return Positioned(
-              top: appDesign.gridDistance * (nGS - i - 1) +
-                  verticalPosController.value +
-                  (i <= gameController.getActiveLayer()
-                      ? appDesign.gridDistance / 2
-                      : 0),
-              child: Transform(
-                alignment: Alignment.center,
-                transform: Matrix4.identity()
-                  ..rotateX((pi / 4) * 1.25)
-                  ..rotateZ(-1 * rotationController.value * (pi / 180)),
-                child: Stack(alignment: Alignment.center, children: [
-                  ClipRRect(
-                    clipBehavior: Clip.antiAlias,
-                    borderRadius: BorderRadius.circular(20),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(
-                          sigmaX: 5.0,
-                          sigmaY:
-                              5.0), // Blur everything underneith it (Frosted Glass effect)
-                      child: Container(
-                        height: appDesign.layerWidth,
-                        width: appDesign.layerWidth,
-                        decoration: BoxDecoration(
-                            color:
-                                appDesign.onBackgroundContainer.withAlpha(86)),
-                      ),
+    return List.generate(nGS, (i) {
+      return AnimatedBuilder(
+        animation:
+            Listenable.merge([rotationController, verticalPosController]),
+        builder: (context, child) {
+          return Positioned(
+            top: appDesign.gridDistance * (nGS - i - 1) +
+                verticalPosController.value +
+                (i <= gameController.getActiveLayer()
+                    ? appDesign.gridDistance / 2
+                    : 0),
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..rotateX((pi / 4) * 1.25)
+                ..rotateZ(-1 * rotationController.value * (pi / 180)),
+              child: Stack(alignment: Alignment.center, children: [
+                ClipRRect(
+                  clipBehavior: Clip.antiAlias,
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                        sigmaX: 5.0,
+                        sigmaY:
+                            5.0), // Blur everything underneith it (Frosted Glass effect)
+                    child: Container(
+                      height: appDesign.layerWidth,
+                      width: appDesign.layerWidth,
+                      decoration: BoxDecoration(
+                          color: appDesign.onBackgroundContainer.withAlpha(86)),
                     ),
                   ),
-                  TTTGrid(
-                    gameController: gameController,
-                    gridID: i.toDouble(),
-                  ),
-                  gameController.getActiveLayer() != i
-                      ? GestureDetector(
-                          onTap: () async {
-                            setState(() {
-                              gameController.setActiveLayer(i);
-                            });
-                            await focusOnLayerAnimated(i);
-                          },
-                          child: Container(
-                            height: appDesign.layerWidth,
-                            width: appDesign.layerWidth,
-                            decoration: BoxDecoration(
-                                color: appDesign.onBackgroundContainer
-                                    .withAlpha(128),
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(20))),
-                          ),
-                        )
-                      : SizedBox(
+                ),
+                TTTGrid(
+                  gameController: gameController,
+                  gridID: i.toDouble(),
+                ),
+                gameController.getActiveLayer() != i
+                    ? GestureDetector(
+                        onTap: () async {
+                          setState(() {
+                            gameController.setActiveLayer(i);
+                          });
+                          await focusOnLayerAnimated(i);
+                        },
+                        child: Container(
+                          height: appDesign.layerWidth,
                           width: appDesign.layerWidth,
-                          height: appDesign.layerWidth),
-                ]),
-              ),
-            );
-          },
-        ),
+                          decoration: BoxDecoration(
+                              color: appDesign.onBackgroundContainer
+                                  .withAlpha(128),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(20))),
+                        ),
+                      )
+                    : SizedBox(
+                        width: appDesign.layerWidth,
+                        height: appDesign.layerWidth),
+              ]),
+            ),
+          );
+        },
       );
-    }
+    }, growable: false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Stack(
       alignment: Alignment.center,
-      children: tttGrids,
+      children: _buildTTTGridStack(),
     );
   }
 }

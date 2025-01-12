@@ -19,10 +19,24 @@ class TTTGrid extends StatefulWidget {
 }
 
 class _TTTGridState extends State<TTTGrid> {
+  List<Widget> _buildTTTGrid() {
+    final gameController = Provider.of<TTTGameController>(context);
+    int nGS = gameController.getGameSettings().getGFSize();
+
+    return List.generate(pow(nGS, 2).toInt(), (index) {
+      return TTTField(
+        gameController: gameController,
+        cordID: Vector3((index % nGS).toDouble(),
+            (index / nGS).floor().toDouble(), widget.gridID),
+      );
+    }, growable: false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final appDesign = Provider.of<Appdesign>(context);
     int nGS = widget.gameController.getGameSettings().getGFSize();
+
     return Container(
       height: appDesign.layerWidth,
       width: appDesign.layerWidth,
@@ -30,23 +44,14 @@ class _TTTGridState extends State<TTTGrid> {
       decoration: BoxDecoration(
           border: Border.all(color: appDesign.fontInactive, width: 1),
           borderRadius: BorderRadius.circular(20)),
-      child: GridView.builder(
-        // addRepaintBoundaries: false,
-
+      child: GridView(
         shrinkWrap: false,
         clipBehavior: Clip.none,
         padding: const EdgeInsets.all(0),
-        itemCount: pow(nGS, 2).toInt(),
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: nGS, mainAxisSpacing: 0, crossAxisSpacing: 0),
-        itemBuilder: (context, index) {
-          return TTTField(
-            gameController: widget.gameController,
-            cordID: Vector3(index % nGS.toDouble(),
-                (index / nGS).floor().toDouble(), widget.gridID),
-          );
-        },
+        children: _buildTTTGrid(),
       ),
     );
   }

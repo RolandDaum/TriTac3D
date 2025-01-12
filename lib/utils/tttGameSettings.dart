@@ -44,8 +44,10 @@ class TTTGameSettings {
     return this._requiredWins;
   }
 
-  void setRequiredWins(int minWins) {
-    _maxWins = 2;
+  void setRequiredWins(int reqWins) {
+    if (!(reqWins > this._maxWins || reqWins < this._minWins)) {
+      this._requiredWins = reqWins;
+    }
   }
 
   /// GAMEFIELD SIZE STUFF ///

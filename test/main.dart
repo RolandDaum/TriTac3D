@@ -62,7 +62,6 @@ class _WebRTCAppState extends State<WebRTCApp> {
     _peerConnection = await createPeerConnection(configuration);
 
     _peerConnection?.onConnectionState = (state) async {
-      print(state.toString());
       switch (state) {
         case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
           print("");

@@ -207,6 +207,8 @@ class _GameOverlayState extends State<GameOverlay>
           position: _gameSettingAnimation,
           child: Gamesettingspopup(
             switchToPopUp: _switchToPopUp,
+            onTTTGameManagerCreation: (gameManager) =>
+                _prepareTTTGameManager(gameManager),
           ),
         );
       case acPopUpTypes.gameConnection:

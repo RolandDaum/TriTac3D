@@ -52,11 +52,6 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
   }
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final Appdesign appDesign = Provider.of<Appdesign>(context);
     return Container(

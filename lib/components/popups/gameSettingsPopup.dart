@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -7,13 +5,19 @@ import 'package:tritac3d/components/gameOverlay.dart';
 import 'package:tritac3d/components/tttButton.dart';
 import 'package:tritac3d/utils/appDesign.dart';
 import 'package:tritac3d/utils/tttGameController.dart';
+import 'package:tritac3d/utils/tttGameManager.dart';
+import 'package:tritac3d/utils/tttGameManagerLocal.dart';
 import 'package:tritac3d/utils/tttGameSettings.dart';
 import 'package:vibration/vibration.dart';
 
 class Gamesettingspopup extends StatefulWidget {
   final Function(acPopUpTypes type) switchToPopUp;
+  final Function(TTTGameManager?) onTTTGameManagerCreation;
 
-  Gamesettingspopup({super.key, required this.switchToPopUp});
+  Gamesettingspopup(
+      {super.key,
+      required this.switchToPopUp,
+      required this.onTTTGameManagerCreation});
 
   @override
   State<Gamesettingspopup> createState() => _GamesettingspopupState();
@@ -47,6 +51,7 @@ class _GamesettingspopupState extends State<Gamesettingspopup> {
             },
             min: gameSettigns.getMinGFSize().toDouble(),
             max: gameSettigns.getMaxGFSize().toDouble(),
+            initValue: gameSettigns.getGFSize().toDouble(),
             description: "gamefield size",
             iconpath: "assets/icons/icon_grid.svg",
             title: "%s x %s x %s",
@@ -58,6 +63,7 @@ class _GamesettingspopupState extends State<Gamesettingspopup> {
             },
             min: gameSettigns.getMinWins().toDouble(),
             max: gameSettigns.getMaxWins().toDouble(),
+            initValue: gameSettigns.getRequiredWins().toDouble(),
             title: "%s x",
             description: "minimum wins",
             iconpath: "assets/icons/icon_crown.svg",
@@ -86,7 +92,10 @@ class _GamesettingspopupState extends State<Gamesettingspopup> {
           ),
           SizedBox(height: 20),
           TTTButton(
-            onPressed: () {},
+            onPressed: () {
+              widget.onTTTGameManagerCreation.call(TTTGameManagerLocal());
+              widget.switchToPopUp(acPopUpTypes.gamePlay);
+            },
             type: TTTBType.secondary,
             padding: EdgeInsets.symmetric(vertical: 20),
             child: Row(
@@ -115,19 +124,23 @@ class _settingSlider extends StatefulWidget {
   final String iconpath;
   final double min;
   final double max;
+  late double initValue;
 
   /// use %s as placeholder for the value
   final String title;
   final String description;
   final Function(double)? onChanged;
-  const _settingSlider(
+  _settingSlider(
       {super.key,
       required this.iconpath,
       this.min = 0,
       this.max = 1,
       this.title = "title",
       this.description = "description",
-      this.onChanged});
+      this.onChanged,
+      double? initValue}) {
+    this.initValue = initValue ?? this.min;
+  }
 
   @override
   State<_settingSlider> createState() => _settingSliderState();
@@ -138,7 +151,7 @@ class _settingSliderState extends State<_settingSlider> {
 
   @override
   void initState() {
-    _value = widget.min;
+    _value = widget.initValue;
 
     super.initState();
   }
