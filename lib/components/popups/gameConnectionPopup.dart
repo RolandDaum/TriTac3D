@@ -27,7 +27,6 @@ class _GameconnectionpopupState extends State<Gameconnectionpopup> {
       ),
       child: Column(
         children: [
-          // TODO: Add icons and in generall continue right here
           TTTButton(
             onPressed: () {
               widget.switchToPopUp(acPopUpTypes.gameConnectionHost);

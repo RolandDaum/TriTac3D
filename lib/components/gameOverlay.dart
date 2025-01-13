@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:tritac3d/components/popups/gameConnectionPopup.dart';
 import 'package:tritac3d/components/popups/gameConnectionPopupHost.dart';
 import 'package:tritac3d/components/popups/gameConnectionPopupJoin.dart';
+import 'package:tritac3d/components/popups/gameEndPopup.dart';
 import 'package:tritac3d/components/popups/gamePlayPopup.dart';
 import 'package:tritac3d/components/popups/gameSettingsPopup.dart';
 import 'package:tritac3d/components/popups/homeButtonsPopup.dart';
@@ -26,13 +27,15 @@ enum acPopUpTypes {
   gameConnection,
   gameConnectionHost,
   gameConnectionJoin,
-  gamePlay
+  gamePlay,
+  gameEnd
 }
 
 class _GameOverlayState extends State<GameOverlay>
     with TickerProviderStateMixin {
   // Animation Stuff
   acPopUpTypes currentPopUpType = acPopUpTypes.gameButton;
+
   late AnimationController _acTitle;
   late AnimationController _acGameButton;
   late AnimationController _acGameSetting;
@@ -40,6 +43,7 @@ class _GameOverlayState extends State<GameOverlay>
   late AnimationController _acGameConnectionHost;
   late AnimationController _acGameConnectionJoin;
   late AnimationController _acGamePlay;
+  late AnimationController _acGameEnd;
 
   late Map<acPopUpTypes, AnimationController> _acControllers;
   late Animation<Offset> _titleAnimation;
@@ -49,18 +53,18 @@ class _GameOverlayState extends State<GameOverlay>
   late Animation<Offset> _gameConnectionHostAnimation;
   late Animation<Offset> _gameConnectionJoinAnimation;
   late Animation<Offset> _gamePlay;
-
-  AnimationController _createAnimationController() {
-    return AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 150),
-    );
-  }
+  late Animation<Offset> _gameEnd;
 
   TTTGameManager? tttGameManager;
   late TTTGameController tttGameController;
 
   void _animationControllerInit() {
+    AnimationController Function() _createAnimationController = () {
+      return AnimationController(
+        vsync: this,
+        duration: Duration(milliseconds: 150),
+      );
+    };
     // ANIMATION CONTROLLER
     _acTitle = AnimationController(
       vsync: this,
@@ -72,13 +76,15 @@ class _GameOverlayState extends State<GameOverlay>
     _acGameConnectionHost = _createAnimationController();
     _acGameConnectionJoin = _createAnimationController();
     _acGamePlay = _createAnimationController();
+    _acGameEnd = _createAnimationController();
     _acControllers = {
       acPopUpTypes.gameButton: _acGameButton,
       acPopUpTypes.gameSetting: _acGameSetting,
       acPopUpTypes.gameConnection: _acGameConnection,
       acPopUpTypes.gameConnectionHost: _acGameConnectionHost,
       acPopUpTypes.gameConnectionJoin: _acGameConnectionJoin,
-      acPopUpTypes.gamePlay: _acGamePlay
+      acPopUpTypes.gamePlay: _acGamePlay,
+      acPopUpTypes.gameEnd: _acGameEnd
     };
     // ANIMATIONS
     _titleAnimation =
@@ -113,6 +119,9 @@ class _GameOverlayState extends State<GameOverlay>
     _gamePlay = Tween<Offset>(begin: Offset(0, 1), end: Offset.zero).animate(
       CurvedAnimation(parent: _acGamePlay, curve: Curves.easeInOutQuart),
     );
+    _gameEnd = Tween<Offset>(begin: Offset(0, 1), end: Offset.zero).animate(
+      CurvedAnimation(parent: _acGameEnd, curve: Curves.easeInOutQuart),
+    );
 
     _acTitle.forward();
     _acGameButton.forward();
@@ -134,13 +143,7 @@ class _GameOverlayState extends State<GameOverlay>
 
   @override
   void dispose() {
-    _acTitle.dispose();
-    _acGameButton.dispose();
-    _acGameSetting.dispose();
-    _acGameConnection.dispose();
-    _acGameConnectionHost.dispose();
-    _acGameConnectionJoin.dispose();
-    _acGamePlay.dispose();
+    _acControllers.forEach((_, controller) => controller.dispose());
 
     BackButtonInterceptor.remove(backInterceptor);
 
@@ -150,23 +153,29 @@ class _GameOverlayState extends State<GameOverlay>
   /// Manages overlay navigation stuff
   bool backInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
     switch (currentPopUpType) {
+      case acPopUpTypes.gameButton:
+        return false;
+      case acPopUpTypes.gameSetting:
+        _switchToPopUp(acPopUpTypes.gameButton);
+        break;
+      case acPopUpTypes.gameConnection:
+        _switchToPopUp(acPopUpTypes.gameSetting);
+        break;
       case acPopUpTypes.gameConnectionHost:
         _switchToPopUp(acPopUpTypes.gameConnection);
         break;
       case acPopUpTypes.gameConnectionJoin:
         _switchToPopUp(acPopUpTypes.gameConnection);
         break;
-      case acPopUpTypes.gameConnection:
-        _switchToPopUp(acPopUpTypes.gameSetting);
-        break;
-      case acPopUpTypes.gameSetting:
-        _switchToPopUp(acPopUpTypes.gameButton);
-        break;
-      case acPopUpTypes.gameButton:
-        return false;
       case acPopUpTypes.gamePlay:
+        // tttGameManager?.dispose();
+        // this.tttGameManager = null;
         _switchToPopUp(acPopUpTypes.gameButton);
-        tttGameManager?.dispose();
+        break;
+      case acPopUpTypes.gameEnd:
+        // tttGameManager?.dispose();
+        // this.tttGameManager = null;
+        _switchToPopUp(acPopUpTypes.gameButton);
         break;
     }
 
@@ -174,8 +183,13 @@ class _GameOverlayState extends State<GameOverlay>
   }
 
   void _switchToPopUp(acPopUpTypes popUpType) {
-    if (popUpType != acPopUpTypes.gamePlay) {
+    if (popUpType != acPopUpTypes.gamePlay &&
+        popUpType != acPopUpTypes.gameEnd) {
       this.tttGameManager?.dispose();
+      this.tttGameManager = null;
+    }
+    if (popUpType == acPopUpTypes.gamePlay) {
+      tttGameManager?.startGame();
     }
 
     int reversedCount = _acControllers.length - 1;
@@ -241,20 +255,26 @@ class _GameOverlayState extends State<GameOverlay>
             switchToPopUp: _switchToPopUp,
           ),
         );
+      case acPopUpTypes.gameEnd:
+        return SlideTransition(
+          position: _gameEnd,
+          child: Gameendpopup(
+            switchToPopUp: _switchToPopUp,
+          ),
+        );
     }
   }
 
   void _prepareTTTGameManager(TTTGameManager? gameManager) {
     this.tttGameManager = gameManager;
+
     gameManager?.setGameController(tttGameController);
+
     tttGameManager?.setOnGameEnd(() {
-      this.tttGameManager = null;
-      _switchToPopUp(acPopUpTypes.gameButton);
+      _switchToPopUp(acPopUpTypes.gameEnd);
     });
 
-    tttGameManager?.startGame();
-
-    /// Logic if a new / not null game Manager has been set
+    // tttGameManager?.startGame();
   }
 
   @override

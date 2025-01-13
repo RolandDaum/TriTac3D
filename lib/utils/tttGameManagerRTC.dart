@@ -39,3 +39,4 @@ class TTTGameManagerRTC implements TTTGameManager {
     this._gameEnd = onGameEnd;
   }
 }
+  

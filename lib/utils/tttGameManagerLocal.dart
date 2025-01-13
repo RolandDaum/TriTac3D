@@ -13,20 +13,38 @@ class TTTGameManagerLocal implements TTTGameManager {
 
   @override
   void startGame() {
+    int moveCount = 0;
     _tttGameController!.setBackgroundMode(false);
+
     _tttGameController!.setOnRegisteredMoveEvent((move) {
+      if (_tttGameController!.getField(move).getState() != TTTFS.empty) {
+        return;
+      }
+      moveCount++;
+
       _tttGameController?.setMove(
           move,
           _tttGameController!.getLastField()?.getInvertedState() ??
               (Random().nextBool() ? TTTFS.cricle : TTTFS.cross));
+
+      _tttGameController!.highlightWins(TTTFS.cricle);
+      _tttGameController!.highlightWins(TTTFS.cross);
+
       if (_tttGameController!.getWinsO() >=
           _tttGameController!.getGameSettings().getRequiredWins()) {
-        // END GAME WITH O AS THE WINNER
-        dispose();
+        _tttGameController!.setOnRegisteredMoveEvent((_) {});
+        _tttGameController!.deHighlightWins(TTTFS.cross);
+        _gameEnd?.call();
       } else if (_tttGameController!.getWinsX() >=
           _tttGameController!.getGameSettings().getRequiredWins()) {
-        // END GAME WITH X AS THE WINNER
-        dispose();
+        _tttGameController!.setOnRegisteredMoveEvent((_) {});
+        _tttGameController!.deHighlightWins(TTTFS.cricle);
+
+        _gameEnd?.call();
+      }
+      if (moveCount >=
+          pow(_tttGameController!.getGameSettings().getGFSize(), 3).toInt()) {
+        _gameEnd?.call();
       }
     });
   }
@@ -39,7 +57,7 @@ class TTTGameManagerLocal implements TTTGameManager {
   @override
   void dispose() {
     _tttGameController!.setBackgroundMode(true);
-    _gameEnd?.call();
+    // _gameEnd?.call(); // DONT CALL HERE, _gameEnd is only supposed to be triggered once a game is over and a player has won
   }
 
   @override

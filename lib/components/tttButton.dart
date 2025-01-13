@@ -20,7 +20,7 @@ class TTTButton extends StatefulWidget {
       this.height,
       this.width,
       this.fontSize,
-      this.padding = const EdgeInsets.symmetric(vertical: 20),
+      this.padding = const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
       this.margin = const EdgeInsets.all(0),
       this.type = TTTBType.primary,
       this.child,

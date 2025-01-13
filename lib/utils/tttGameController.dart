@@ -71,6 +71,7 @@ class TTTGameController with ChangeNotifier {
   TTTGameController() {
     init();
   }
+
   void init() async {
     updateGameSize();
     _gameSettings.setOnGFSizeChange((size) => updateGameSize());
@@ -79,44 +80,6 @@ class TTTGameController with ChangeNotifier {
     setBackgroundMode(true);
 
     hasVibrator = (await Vibration.hasVibrator())!;
-  }
-
-  /// Updates the gameState List on a given move location and to state
-  /// All if the move location field has an empty state
-  void setMove(Vector3 move, TTTFS state) {
-    bool updated = gameState[move.x.toInt()][move.y.toInt()][move.z.toInt()]
-        .setState(state);
-    if (updated) {
-      _lastMoveID = move;
-      checkforwin();
-      updateGameUI();
-    }
-  }
-
-  /// call notifies the controllor of a pressed field
-  void registeredMoveEvent(Vector3 eventCord) {
-    this._onRegisteredmoveEvent?.call(eventCord);
-  }
-
-  void _updateGameStateWins() {
-    for (var win in _winso) {
-      _updateWinState(win, TTTFS.cricle);
-    }
-    for (var win in _winsx) {
-      _updateWinState(win, TTTFS.cross);
-    }
-  }
-
-  void _updateWinState(_WIN win, TTTFS state) {
-    Vector3 point = win.point;
-    Vector3 direction = win.direction;
-
-    for (int i = 0; i < _gameSettings.getGFSize(); i++) {
-      int x = (point.x + i * direction.x).toInt();
-      int y = (point.y + i * direction.y).toInt();
-      int z = (point.z + i * direction.z).toInt();
-      gameState[x][y][z].setHighlight(true);
-    }
   }
 
   /// updates the entire game UI via Provider
@@ -163,6 +126,71 @@ class TTTGameController with ChangeNotifier {
     }
     updateGameUI();
     setBackgroundMode(getBackgroundMode());
+  }
+
+  /// Updates the gameState List on a given move location and to state
+  /// All if the move location field has an empty state
+  void setMove(Vector3 move, TTTFS state) {
+    bool updated = gameState[move.x.toInt()][move.y.toInt()][move.z.toInt()]
+        .setState(state);
+    if (updated) {
+      _lastMoveID = move;
+      checkforwin();
+      updateGameUI();
+    }
+  }
+
+  /// call notifies the controllor of a pressed field
+  void registeredMoveEvent(Vector3 eventCord) {
+    this._onRegisteredmoveEvent?.call(eventCord);
+  }
+
+  void highlightWins(TTTFS type) {
+    switch (type) {
+      case TTTFS.cricle:
+        _winso.forEach((win) {
+          _setWinHighlightedState(win);
+        });
+
+        break;
+      case TTTFS.cross:
+        _winsx.forEach((win) {
+          _setWinHighlightedState(win);
+        });
+
+        break;
+      default:
+        return;
+    }
+  }
+
+  void deHighlightWins(TTTFS type) {
+    switch (type) {
+      case TTTFS.cricle:
+        _winso.forEach((win) {
+          _setWinHighlightedState(win, highlighted: false);
+        });
+        break;
+      case TTTFS.cross:
+        _winsx.forEach((win) {
+          _setWinHighlightedState(win, highlighted: false);
+        });
+        break;
+      default:
+        return;
+    }
+  }
+
+  void _setWinHighlightedState(_WIN win, {bool highlighted = true}) {
+    Vector3 point = win.point;
+    Vector3 direction = win.direction;
+
+    for (int i = 0; i < _gameSettings.getGFSize(); i++) {
+      int x = (point.x + i * direction.x).toInt();
+      int y = (point.y + i * direction.y).toInt();
+      int z = (point.z + i * direction.z).toInt();
+      gameState[x][y][z].setHighlight(highlighted);
+    }
   }
 
   /// Fins all possible wins in the cubic game field and safes them in calss win object
@@ -325,10 +353,10 @@ class TTTGameController with ChangeNotifier {
     // Merges the existing and new wins togther while removing duplicates
     if (lastFieldState == TTTFS.cricle) {
       _winso = <_WIN>{..._winso, ...wins}.toList();
-      _updateGameStateWins();
+      // _updateGameStateWins();
     } else if (lastFieldState == TTTFS.cross) {
       _winsx = <_WIN>{..._winsx, ...wins}.toList();
-      _updateGameStateWins();
+      // _updateGameStateWins();
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tritac3d/components/gameOverlay.dart';
+import 'package:tritac3d/components/tttField.dart';
 import 'package:tritac3d/utils/appDesign.dart';
 import 'package:tritac3d/utils/tttGameController.dart';
 
@@ -25,10 +26,68 @@ class _GameplaypopupState extends State<Gameplaypopup> {
         color: appDesign.onBackgroundContainer,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Text("X: " + gameController.getWinsX().toString()),
-          Text("O: " + gameController.getWinsO().toString())
+          Column(
+            children: [
+              Text(
+                !gameController.getBackgroundMode()
+                    ? gameController.getWinsX().toString()
+                    : "0",
+                style: TextStyle(fontSize: 64, fontWeight: FontWeight.w900),
+              ),
+              Row(
+                children: [
+                  CustomPaint(
+                    size: Size(20, 20),
+                    painter: TttfieldCross(appDesign),
+                  ),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  Text(
+                    "CROSS",
+                    style:
+                        TextStyle(color: appDesign.fontInactive, fontSize: 16),
+                  )
+                ],
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 25),
+            child: Text(
+              ":",
+              style: TextStyle(fontSize: 64, fontWeight: FontWeight.w900),
+            ),
+          ),
+          Column(
+            children: [
+              Text(
+                !gameController.getBackgroundMode()
+                    ? gameController.getWinsO().toString()
+                    : "0",
+                style: TextStyle(fontSize: 64, fontWeight: FontWeight.w900),
+              ),
+              Row(
+                children: [
+                  CustomPaint(
+                    size: Size(20, 20),
+                    painter: TttfieldCircle(appDesign),
+                  ),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  Text(
+                    "CIRCLE",
+                    style:
+                        TextStyle(color: appDesign.fontInactive, fontSize: 16),
+                  )
+                ],
+              ),
+            ],
+          )
         ],
       ),
     );
