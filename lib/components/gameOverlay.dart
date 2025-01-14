@@ -302,13 +302,13 @@ class _GameOverlayState extends State<GameOverlay>
             position: _titleAnimation,
             child: Padding(
               padding:
-                  EdgeInsets.only(top: MediaQuery.of(context).padding.top + 24),
+                  EdgeInsets.only(top: MediaQuery.of(context).padding.top + 16),
               child: Text(
                 "TriTac3D",
                 style: TextStyle(
                     letterSpacing: 4,
                     fontFamily: 'Jersey10',
-                    fontSize: 68,
+                    fontSize: 66,
                     color: appDesign.fontActive),
               ),
             ),

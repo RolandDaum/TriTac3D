@@ -15,7 +15,7 @@ class Homebuttonspopup extends StatelessWidget {
       text: "P L A Y",
       width: double.infinity,
       fontSize: 60,
-      margin: EdgeInsets.symmetric(horizontal: 45).copyWith(bottom: 40),
+      margin: appDesign.popupMargin,
       padding: EdgeInsets.symmetric(vertical: 20),
       onPressed: () {
         switchToPopUp(acPopUpTypes.gameSetting);

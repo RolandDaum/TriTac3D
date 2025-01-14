@@ -26,6 +26,12 @@ class Appdesign with ChangeNotifier {
 
   late TextStyle TTTButtonTxtStyle;
 
+  EdgeInsets popupMargin =
+      EdgeInsets.symmetric(horizontal: 40).copyWith(bottom: 20);
+  EdgeInsets popupContainerPadding =
+      EdgeInsets.symmetric(vertical: 20, horizontal: 20);
+  BorderRadius popupContainerRadius = BorderRadius.circular(20);
+
   Appdesign() {
     init();
   }
@@ -99,7 +105,6 @@ class Appdesign with ChangeNotifier {
     accentYellow = const Color(0xFFCB9B6D);
     accentPink = const Color(0xFF8D5194);
     border = const Color(0xFFE0E0E0);
-
   }
 
   void toggleDarkMode() {

@@ -56,11 +56,11 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
     final Appdesign appDesign = Provider.of<Appdesign>(context);
     return Container(
       alignment: Alignment.center,
-      margin: EdgeInsets.symmetric(horizontal: 40).copyWith(bottom: 40),
-      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+      margin: appDesign.popupMargin,
+      padding: appDesign.popupContainerPadding,
       decoration: BoxDecoration(
           color: appDesign.onBackgroundContainer,
-          borderRadius: BorderRadius.circular(20)),
+          borderRadius: appDesign.popupContainerRadius),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,

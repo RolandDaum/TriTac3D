@@ -4,8 +4,6 @@ import 'package:tritac3d/utils/appDesign.dart';
 import 'package:tritac3d/utils/tttGameController.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
-enum TTTFS { empty, cross, cricle }
-
 class TTTField extends StatefulWidget {
   final TTTGameController gameController;
   final vm.Vector3 cordID;

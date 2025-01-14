@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:tritac3d/components/tttField.dart';
 import 'package:tritac3d/utils/tttGameSettings.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:vibration/vibration.dart';
@@ -52,6 +51,8 @@ class TTTGameFieldState {
     return this._id;
   }
 }
+
+enum TTTFS { empty, cross, cricle }
 
 class TTTGameController with ChangeNotifier {
   TTTGameSettings _gameSettings = TTTGameSettings();

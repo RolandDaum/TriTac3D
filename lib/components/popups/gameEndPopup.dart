@@ -16,15 +16,15 @@ class Gameendpopup extends StatelessWidget {
         gameController = Provider.of<TTTGameController>(context);
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 40).copyWith(bottom: 40),
+      margin: appDesign.popupMargin,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+            padding: appDesign.popupContainerPadding,
             decoration: BoxDecoration(
               color: appDesign.onBackgroundContainer,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: appDesign.popupContainerRadius,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,

@@ -30,11 +30,11 @@ class _GamesettingspopupState extends State<Gamesettingspopup> {
         gameController = Provider.of<TTTGameController>(context);
     TTTGameSettings gameSettigns = gameController.getGameSettings();
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 40).copyWith(bottom: 40),
-      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+      margin: appDesign.popupMargin,
+      padding: appDesign.popupContainerPadding,
       decoration: BoxDecoration(
         color: appDesign.onBackgroundContainer,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: appDesign.popupContainerRadius,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
