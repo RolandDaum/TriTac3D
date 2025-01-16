@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 class TTTGameSettings {
@@ -32,17 +33,11 @@ class TTTGameSettings {
 
   /// WIN STUFF ///
 
-  int getMinWins() {
-    return this._minWins;
-  }
+  int getMinWins() => _minWins;
 
-  int getMaxWins() {
-    return this._maxWins;
-  }
+  int getMaxWins() => _maxWins;
 
-  int getRequiredWins() {
-    return this._requiredWins;
-  }
+  int getRequiredWins() => _requiredWins;
 
   void setRequiredWins(int reqWins) {
     if (!(reqWins > this._maxWins || reqWins < this._minWins)) {
@@ -52,19 +47,13 @@ class TTTGameSettings {
 
   /// GAMEFIELD SIZE STUFF ///
 
-  int getMinGFSize() {
-    return this._minGFS;
-  }
+  int getMinGFSize() => _minGFS;
 
-  int getMaxGFSize() {
-    return this._maxGFS;
-  }
+  int getMaxGFSize() => _maxGFS;
 
   /// Returns the sidelength size of the game field
   /// if gamefield is x*x*x it returns x
-  int getGFSize() {
-    return this._gameFieldSize;
-  }
+  int getGFSize() => _gameFieldSize;
 
   void setGFSize(int size) {
     if (size >= _minGFS && size <= _maxGFS) {
@@ -78,9 +67,22 @@ class TTTGameSettings {
     this._onGFSizeChange = fnc;
   }
 
-  /// OTHER STUFF IDK. DONT ASK ME ///
+  double getDefaultRotation() => _defaultRotation;
 
-  double getDefaultRotation() {
-    return this._defaultRotation;
+  /// JSON IN/EXPORT ///
+  String toJsonString() {
+    return jsonEncode({
+      'type': 'settings',
+      'settings': {
+        'gameFieldSize': getGFSize(),
+        'requiredWins': getRequiredWins(),
+      }
+    });
   }
+
+  // void fromJsonString(String jsonSettings) {
+  //   Map<String, dynamic> settings = jsonDecode(jsonSettings);
+  //   setGFSize(settings['Settings']['gameFieldSize']);
+  //   setRequiredWins(settings['Settings']['requiredWins']);
+  // }
 }

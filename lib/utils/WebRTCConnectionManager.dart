@@ -251,6 +251,7 @@ class WebRTCConnectionManager {
 
   /// Sends the given data via the data channel
   Future<void> sendData(String data) async {
+    // print(data);
     if (_dataChannel?.state == RTCDataChannelState.RTCDataChannelOpen) {
       await _dataChannel?.send(RTCDataChannelMessage(data));
     }
@@ -297,20 +298,12 @@ class WebRTCConnectionManager {
     this._onNewGameCode = onNewGameCode;
   }
 
-  bool isConnected() {
-    return this._isConnected;
-  }
+  bool isConnected() => this._isConnected;
+
+  bool isHost() => this._isHost;
 
   /// REMOVES EVERYTHING ///
   Future<void> dispose() async {
-    // connectionFailed?.call(); // IDK if I should call it on dispose, cause it is some kind of connection failure
-
-    print("");
-    print("");
-    print(" D I S P O S I N G ");
-    print("");
-    print("");
-
     for (var listener in _rltdbListener) {
       await listener.cancel();
     }
