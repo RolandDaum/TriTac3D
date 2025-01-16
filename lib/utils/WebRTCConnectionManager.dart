@@ -24,11 +24,12 @@ class WebRTCConnectionManager {
   VoidCallback? connectionEstablished;
   VoidCallback? connectionFailed;
   bool _onceConnected = false;
+  bool _isConnected = false;
 
   /// - M E T H O D S - ///
 
   /// Creates a game offer in Firebase Realtime DB under the subdirectory games/{return STRING GAMECODE}
-  Future<String> createGame() async {
+  Future<String> createGameOffer() async {
     await dispose();
     // Marks itself as the host (offerer)
     _isHost = true;
@@ -258,6 +259,7 @@ class WebRTCConnectionManager {
 
   /// Called everytime anything happends related to a successfull connection
   void _onConnectionEstablished() async {
+    _isConnected = true;
     _onceConnected = true;
     if (_isHost) {
       await _rltdb.ref('games/$_gameCode').remove();
@@ -266,11 +268,12 @@ class WebRTCConnectionManager {
 
   /// Called everytime anything happends related to a connection failure
   void _onConnectionFailure() async {
+    _isConnected = false;
     connectionFailed?.call();
     if (!_onceConnected) {
       await dispose();
       if (_isHost) {
-        await createGame();
+        await createGameOffer();
       }
     }
   }
@@ -294,9 +297,19 @@ class WebRTCConnectionManager {
     this._onNewGameCode = onNewGameCode;
   }
 
+  bool isConnected() {
+    return this._isConnected;
+  }
+
   /// REMOVES EVERYTHING ///
   Future<void> dispose() async {
     // connectionFailed?.call(); // IDK if I should call it on dispose, cause it is some kind of connection failure
+
+    print("");
+    print("");
+    print(" D I S P O S I N G ");
+    print("");
+    print("");
 
     for (var listener in _rltdbListener) {
       await listener.cancel();

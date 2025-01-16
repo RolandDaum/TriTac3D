@@ -144,9 +144,10 @@ class _GameOverlayState extends State<GameOverlay>
   @override
   void dispose() {
     _acControllers.forEach((_, controller) => controller.dispose());
-
     BackButtonInterceptor.remove(backInterceptor);
-
+    this.tttGameManager?.dispose();
+    this.tttGameManager = null;
+    tttGameController.dispose();
     super.dispose();
   }
 
@@ -168,13 +169,9 @@ class _GameOverlayState extends State<GameOverlay>
         _switchToPopUp(acPopUpTypes.gameConnection);
         break;
       case acPopUpTypes.gamePlay:
-        // tttGameManager?.dispose();
-        // this.tttGameManager = null;
-        _switchToPopUp(acPopUpTypes.gameButton);
+        _switchToPopUp(acPopUpTypes.gameEnd);
         break;
       case acPopUpTypes.gameEnd:
-        // tttGameManager?.dispose();
-        // this.tttGameManager = null;
         _switchToPopUp(acPopUpTypes.gameButton);
         break;
     }
@@ -183,8 +180,8 @@ class _GameOverlayState extends State<GameOverlay>
   }
 
   void _switchToPopUp(acPopUpTypes popUpType) {
-    if (popUpType != acPopUpTypes.gamePlay &&
-        popUpType != acPopUpTypes.gameEnd) {
+    if (!(popUpType == acPopUpTypes.gamePlay ||
+        popUpType == acPopUpTypes.gameEnd)) {
       this.tttGameManager?.dispose();
       this.tttGameManager = null;
     }
@@ -271,10 +268,12 @@ class _GameOverlayState extends State<GameOverlay>
     gameManager?.setGameController(tttGameController);
 
     tttGameManager?.setOnGameEnd(() {
-      _switchToPopUp(acPopUpTypes.gameEnd);
+      if (tttGameManager!.isOpenForRevenge()) {
+        _switchToPopUp(acPopUpTypes.gameEnd);
+      } else {
+        _switchToPopUp(acPopUpTypes.gameButton);
+      }
     });
-
-    // tttGameManager?.startGame();
   }
 
   @override

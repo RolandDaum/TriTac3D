@@ -6,5 +6,6 @@ abstract class TTTGameManager {
   void startGame();
   void setGameController(TTTGameController controller);
   void setOnGameEnd(VoidCallback onGameEnd);
+  bool isOpenForRevenge();
   void dispose();
 }

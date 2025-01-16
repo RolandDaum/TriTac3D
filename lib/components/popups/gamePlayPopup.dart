@@ -5,16 +5,11 @@ import 'package:tritac3d/components/tttField.dart';
 import 'package:tritac3d/utils/appDesign.dart';
 import 'package:tritac3d/utils/tttGameController.dart';
 
-class Gameplaypopup extends StatefulWidget {
+class Gameplaypopup extends StatelessWidget {
   final Function(acPopUpTypes type) switchToPopUp;
 
   const Gameplaypopup({super.key, required this.switchToPopUp});
 
-  @override
-  State<Gameplaypopup> createState() => _GameplaypopupState();
-}
-
-class _GameplaypopupState extends State<Gameplaypopup> {
   @override
   Widget build(BuildContext context) {
     final appDesign = Provider.of<Appdesign>(context),

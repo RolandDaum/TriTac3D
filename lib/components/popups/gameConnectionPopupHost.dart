@@ -25,33 +25,36 @@ class Gameconnectionpopuphost extends StatefulWidget {
 class _GameconnectionpopuphostState extends State<Gameconnectionpopuphost>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  final WebRTCConnectionManager webRTCConnectionManager =
-      WebRTCConnectionManager();
+  late WebRTCConnectionManager webRTCConnectionManager;
   String _gameCode = "";
   bool connected = false;
 
   @override
   void initState() {
-    webRTCConnectionManager.connectionEstablished = () {
-      print("");
-      print("");
-      print(" - C O N N E C T E D - ");
-      print("");
-      print("");
-    };
-    webRTCConnectionManager.createGame();
+    // Creates WebRTC Manager
+    webRTCConnectionManager = WebRTCConnectionManager();
+
+    // Creates a game
+    webRTCConnectionManager.createGameOffer();
+
+    // Sets the new gameCode in the UI
     webRTCConnectionManager.setOnNewGameCode((gameCode) {
       setState(() {
         this._gameCode = gameCode;
       });
     });
+
+    // If connection: note down, pass back the gamemanager and switch to game
     webRTCConnectionManager.connectionEstablished = () {
+      connected = true;
+
       widget.onTTTGameManagerCreation
           .call(TTTGameManagerRTC(webRTCConnectionManager));
       widget.switchToPopUp(acPopUpTypes.gamePlay);
     };
+    // If connection failed: note down, create new connection offer
     webRTCConnectionManager.connectionFailed = () {
-      widget.onTTTGameManagerCreation.call(null);
+      connected = false;
     };
 
     _controller = AnimationController(
@@ -63,8 +66,11 @@ class _GameconnectionpopuphostState extends State<Gameconnectionpopuphost>
 
   @override
   void dispose() {
-    // webRTCConnectionManager.dispose();
     _controller.dispose();
+
+    if (!connected) {
+      webRTCConnectionManager.dispose();
+    }
 
     super.dispose();
   }

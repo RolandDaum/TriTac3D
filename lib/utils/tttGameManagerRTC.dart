@@ -11,7 +11,7 @@ class TTTGameManagerRTC implements TTTGameManager {
 
   TTTGameManagerRTC(this._webRTCConnectionManager) {
     _webRTCConnectionManager.connectionFailed = () {
-      dispose();
+      _gameEnd?.call();
     };
   }
 
@@ -28,15 +28,22 @@ class TTTGameManagerRTC implements TTTGameManager {
   }
 
   @override
-  void dispose() {
-    _webRTCConnectionManager.dispose();
+  void dispose() async {
+    await _webRTCConnectionManager.dispose();
     _tttGameController?.setBackgroundMode(true);
-    _gameEnd?.call();
   }
 
   @override
   void setOnGameEnd(VoidCallback onGameEnd) {
     this._gameEnd = onGameEnd;
   }
+
+  @override
+  bool isOpenForRevenge() {
+    if (_webRTCConnectionManager.isConnected()) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
-  

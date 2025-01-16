@@ -27,28 +27,28 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
   final WebRTCConnectionManager webRTCConnectionManager =
       WebRTCConnectionManager();
   String _gameCode = "";
+  bool connected = false;
 
   @override
   void initState() {
     webRTCConnectionManager.connectionEstablished = () {
-      print("");
-      print("");
-      print(" - C O N N E C T E D - ");
-      print("");
-      print("");
+      connected = true;
       widget.onTTTGameManagerCreation
           .call(TTTGameManagerRTC(webRTCConnectionManager));
       widget.switchToPopUp(acPopUpTypes.gamePlay);
     };
     webRTCConnectionManager.connectionFailed = () {
-      print("");
-      print("");
-      print(" - F A I L E D - ");
-      print("");
-      print("");
-      widget.onTTTGameManagerCreation.call(null);
+      connected = false;
     };
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    if (!connected) {
+      webRTCConnectionManager.dispose();
+    }
+    super.dispose();
   }
 
   @override

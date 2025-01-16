@@ -64,4 +64,9 @@ class TTTGameManagerLocal implements TTTGameManager {
   void setOnGameEnd(VoidCallback onGameEnd) {
     this._gameEnd = onGameEnd;
   }
+
+  @override
+  bool isOpenForRevenge() {
+    return true;
+  }
 }
