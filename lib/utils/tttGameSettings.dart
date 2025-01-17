@@ -40,8 +40,12 @@ class TTTGameSettings {
   int getRequiredWins() => _requiredWins;
 
   void setRequiredWins(int reqWins) {
+    // print("SETTINGS REQUIRED WINS TO: " + reqWins.toString());
+    // print("ALLOWED MAX WINS ARE: " + _maxWins.toString());
     if (!(reqWins > this._maxWins || reqWins < this._minWins)) {
       this._requiredWins = reqWins;
+    } else if (reqWins > this._maxWins) {
+      this._requiredWins = getMaxWins();
     }
   }
 

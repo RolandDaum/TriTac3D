@@ -74,6 +74,7 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
             height: 20,
           ),
           TTTButton(
+            padding: EdgeInsets.symmetric(vertical: 20, horizontal: 0),
             onPressed: () {
               webRTCConnectionManager.joinGame(_gameCode);
             },

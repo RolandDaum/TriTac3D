@@ -39,6 +39,7 @@ flutter:
     - assets/icons/icon_arrowdown.svg
     - assets/icons/icon_lan.svg
     - assets/icons/icon_server.svg
+    - assets/icons/icon_arrowback.svg
     - assets/images/image_background.png
 
   fonts:

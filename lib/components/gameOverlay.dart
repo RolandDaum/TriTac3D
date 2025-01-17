@@ -1,5 +1,7 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:tritac3d/components/popups/gameConnectionPopup.dart';
 import 'package:tritac3d/components/popups/gameConnectionPopupHost.dart';
@@ -8,6 +10,7 @@ import 'package:tritac3d/components/popups/gameEndPopup.dart';
 import 'package:tritac3d/components/popups/gamePlayPopup.dart';
 import 'package:tritac3d/components/popups/gameSettingsPopup.dart';
 import 'package:tritac3d/components/popups/homeButtonsPopup.dart';
+import 'package:tritac3d/components/tttButton.dart';
 import 'package:tritac3d/utils/appDesign.dart';
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:tritac3d/utils/tttGameController.dart';
@@ -131,6 +134,11 @@ class _GameOverlayState extends State<GameOverlay>
   void initState() {
     _animationControllerInit();
     BackButtonInterceptor.add(backInterceptor);
+    // if (kIsWeb) {
+    //   html.window.onPopState.listen((event) {
+    //     backInterceptor(true, RouteInfo());
+    //   });
+    // }
 
     super.initState();
   }
@@ -184,9 +192,15 @@ class _GameOverlayState extends State<GameOverlay>
         popUpType == acPopUpTypes.gameEnd)) {
       this.tttGameManager?.dispose();
       this.tttGameManager = null;
+      tttGameController.setBackgroundMode(true);
+    } else {
+      tttGameController.setBackgroundMode(false);
     }
     if (popUpType == acPopUpTypes.gamePlay) {
       tttGameManager?.startGame();
+    }
+    if (popUpType == acPopUpTypes.gameEnd) {
+      // DISABLE ANY PLAYS
     }
 
     int reversedCount = _acControllers.length - 1;
@@ -198,6 +212,11 @@ class _GameOverlayState extends State<GameOverlay>
             _acControllers[popUpType]?.forward().whenComplete(() {
               setState(() {
                 currentPopUpType = popUpType;
+                // if (kIsWeb) {
+                //   html.window.history
+                //       .pushState(null, "TriTac3D", 'tritac3d/' + type.name);
+                // }
+                ;
               });
             });
           }
@@ -319,6 +338,28 @@ class _GameOverlayState extends State<GameOverlay>
           right: 0,
           child: _buildPopup(currentPopUpType),
         ),
+        kIsWeb && currentPopUpType != acPopUpTypes.gameButton
+            ? Positioned(
+                top: 0,
+                left: 0,
+                child: TTTButton(
+                  // height: 200,
+                  // width: 200,
+                  margin: EdgeInsets.all(20),
+                  onPressed: () {
+                    backInterceptor(true, RouteInfo());
+                  },
+                  type: TTTBType.secondary,
+                  padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),
+                  child: SvgPicture.asset(
+                    "assets/icons/icon_arrowback.svg",
+                    colorFilter:
+                        ColorFilter.mode(appDesign.fontActive, BlendMode.srcIn),
+                    height: 44,
+                  ),
+                ),
+              )
+            : SizedBox(height: 0, width: 0)
       ],
     );
   }

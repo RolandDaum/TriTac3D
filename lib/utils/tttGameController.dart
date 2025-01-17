@@ -126,7 +126,7 @@ class TTTGameController with ChangeNotifier {
       setActiveLayer(((nGS - 1) / 2).round());
     }
     updateGameUI();
-    setBackgroundMode(getBackgroundMode());
+    setForcedBackgroundMode(getBackgroundMode());
   }
 
   /// Updates the gameState List on a given move location and to state
@@ -143,6 +143,7 @@ class TTTGameController with ChangeNotifier {
 
   /// call notifies the controllor of a pressed field
   void registeredMoveEvent(Vector3 eventCord) {
+    // print("REG MOVE");
     this._onRegisteredmoveEvent?.call(eventCord);
   }
 
@@ -420,6 +421,13 @@ class TTTGameController with ChangeNotifier {
   }
 
   void setBackgroundMode(bool state) {
+    if (_backgroundMode == state) {
+      return;
+    }
+    setForcedBackgroundMode(state);
+  }
+
+  void setForcedBackgroundMode(bool state) {
     _backgroundMode = state;
     _onBackgroundModeChange?.call(_backgroundMode);
     if (_backgroundMode) {

@@ -48,6 +48,7 @@ class _GamesettingspopupState extends State<Gamesettingspopup> {
           _settingSlider(
             onChanged: (size) {
               gameSettigns.setGFSize(size.toInt());
+              gameController.updateGameSize();
             },
             min: gameSettigns.getMinGFSize().toDouble(),
             max: gameSettigns.getMaxGFSize().toDouble(),
@@ -177,7 +178,10 @@ class _settingSliderState extends State<_settingSlider> {
             ),
             Text(
               widget.title.replaceAll("%s", _value.toInt().toString()),
-              style: TextStyle(fontFamily: "Inter", fontSize: 20),
+              style: TextStyle(
+                  fontFamily: "Inter",
+                  fontSize: 20,
+                  color: appDesign.fontActive),
             )
           ],
         ),

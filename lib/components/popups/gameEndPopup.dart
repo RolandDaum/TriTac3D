@@ -35,8 +35,10 @@ class Gameendpopup extends StatelessWidget {
                       !gameController.getBackgroundMode()
                           ? gameController.getWinsX().toString()
                           : "0",
-                      style:
-                          TextStyle(fontSize: 64, fontWeight: FontWeight.w900),
+                      style: TextStyle(
+                          fontSize: 64,
+                          fontWeight: FontWeight.w900,
+                          color: appDesign.fontActive),
                     ),
                     Row(
                       children: [
@@ -60,7 +62,10 @@ class Gameendpopup extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 25),
                   child: Text(
                     ":",
-                    style: TextStyle(fontSize: 64, fontWeight: FontWeight.w900),
+                    style: TextStyle(
+                        fontSize: 64,
+                        fontWeight: FontWeight.w900,
+                        color: appDesign.fontActive),
                   ),
                 ),
                 Column(
@@ -69,8 +74,10 @@ class Gameendpopup extends StatelessWidget {
                       !gameController.getBackgroundMode()
                           ? gameController.getWinsO().toString()
                           : "0",
-                      style:
-                          TextStyle(fontSize: 64, fontWeight: FontWeight.w900),
+                      style: TextStyle(
+                          fontSize: 64,
+                          fontWeight: FontWeight.w900,
+                          color: appDesign.fontActive),
                     ),
                     Row(
                       children: [
@@ -101,11 +108,10 @@ class Gameendpopup extends StatelessWidget {
             children: [
               Expanded(
                 child: TTTButton(
-                  onPressed: () => switchToPopUp(acPopUpTypes.gamePlay),
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  text: "Revenge",
-                  fontSize: 24,
-                ),
+                    onPressed: () => switchToPopUp(acPopUpTypes.gamePlay),
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    text: "Revenge",
+                    fontSize: 24),
               ),
               SizedBox(
                 width: 10,

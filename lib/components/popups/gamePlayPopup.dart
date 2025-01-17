@@ -30,7 +30,10 @@ class Gameplaypopup extends StatelessWidget {
                 !gameController.getBackgroundMode()
                     ? gameController.getWinsX().toString()
                     : "0",
-                style: TextStyle(fontSize: 64, fontWeight: FontWeight.w900),
+                style: TextStyle(
+                    fontSize: 64,
+                    fontWeight: FontWeight.w900,
+                    color: appDesign.fontActive),
               ),
               Row(
                 children: [
@@ -54,7 +57,10 @@ class Gameplaypopup extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 25),
             child: Text(
               ":",
-              style: TextStyle(fontSize: 64, fontWeight: FontWeight.w900),
+              style: TextStyle(
+                  fontSize: 64,
+                  fontWeight: FontWeight.w900,
+                  color: appDesign.fontActive),
             ),
           ),
           Column(
@@ -63,7 +69,10 @@ class Gameplaypopup extends StatelessWidget {
                 !gameController.getBackgroundMode()
                     ? gameController.getWinsO().toString()
                     : "0",
-                style: TextStyle(fontSize: 64, fontWeight: FontWeight.w900),
+                style: TextStyle(
+                    fontSize: 64,
+                    fontWeight: FontWeight.w900,
+                    color: appDesign.fontActive),
               ),
               Row(
                 children: [

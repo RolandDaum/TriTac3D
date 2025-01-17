@@ -71,6 +71,8 @@ class Appdesign with ChangeNotifier {
               .instance.platformDispatcher.views.first.physicalSize.width /
           PlatformDispatcher.instance.views.first.devicePixelRatio;
       double tmpLayerWidth = ((screenWidth * sqrt(2)) / 2) - 20;
+      print(screenWidth);
+      print(tmpLayerWidth);
       if (tmpLayerWidth > 300 || tmpLayerWidth <= 0) {
         layerWidth = 300;
       } else if (layerWidth != tmpLayerWidth) {

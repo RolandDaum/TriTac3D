@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:tritac3d/components/tttField.dart';
 import 'package:tritac3d/utils/tttGameController.dart';
 import 'package:tritac3d/utils/tttGameManager.dart';
 
@@ -9,12 +8,10 @@ class TTTGameManagerLocal implements TTTGameManager {
   TTTGameController? _tttGameController;
   VoidCallback? _gameEnd;
 
-  TTTGameManagerLocal();
-
   @override
   void startGame() {
     int moveCount = 0;
-    _tttGameController!.setBackgroundMode(false);
+    // _tttGameController!.setBackgroundMode(false);
 
     _tttGameController!.setOnRegisteredMoveEvent((move) {
       if (_tttGameController!.getField(move).getState() != TTTFS.empty) {
@@ -56,7 +53,7 @@ class TTTGameManagerLocal implements TTTGameManager {
 
   @override
   void dispose() {
-    _tttGameController!.setBackgroundMode(true);
+    // _tttGameController!.setBackgroundMode(true);
     // _gameEnd?.call(); // DONT CALL HERE, _gameEnd is only supposed to be triggered once a game is over and a player has won
   }
 
@@ -69,4 +66,5 @@ class TTTGameManagerLocal implements TTTGameManager {
   bool isOpenForRevenge() {
     return true;
   }
+
 }
