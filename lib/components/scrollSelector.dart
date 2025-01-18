@@ -7,11 +7,12 @@ import 'package:tritac3d/utils/appDesign.dart';
 class ScrollSelector extends StatefulWidget {
   final Function(String)? onScroll;
   final List<String> items;
+  int initIndex;
 
-  ScrollSelector({
-    this.onScroll,
-    this.items = const ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-  });
+  ScrollSelector(
+      {this.onScroll,
+      this.items = const ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+      this.initIndex = 0});
 
   @override
   _ScrollSelectorState createState() => _ScrollSelectorState();
@@ -26,7 +27,16 @@ class _ScrollSelectorState extends State<ScrollSelector> {
   @override
   void initState() {
     super.initState();
+    if (!(widget.initIndex < 0 || widget.initIndex > widget.items.length - 1)) {
+      selectedIndex = widget.initIndex;
+    }
     _controller.addListener(_scrollListener);
+  }
+
+  @override
+  void didChangeDependencies() {
+    widget.onScroll?.call(widget.items[0]);
+    super.didChangeDependencies();
   }
 
   @override
@@ -37,42 +47,39 @@ class _ScrollSelectorState extends State<ScrollSelector> {
   }
 
   void _scrollListener() {
-    int selectedIndex = (_controller.offset / _height).round();
-    if (this.selectedIndex != selectedIndex) {
+    int selcIdx = (_controller.offset / _height).round();
+    if (this.selectedIndex != selcIdx) {
+      selectedIndex = selcIdx;
       widget.onScroll?.call(widget.items[selectedIndex]);
     }
   }
 
-  @override
-  void didChangeDependencies() {
-    widget.onScroll?.call(widget.items[0]);
-    super.didChangeDependencies();
-  }
-
-  void _scrollTo(int index) {
+  void _scrollTo(int index) async {
+    if (index < 0 || index > widget.items.length - 1) {
+      return;
+    }
+    selectedIndex = index;
     widget.onScroll?.call(widget.items[index]);
-    _controller.animateTo(
-      index * _height,
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+    await _controller.animateTo(
+      selectedIndex * _height,
+      duration: Duration(milliseconds: 150),
+      curve: Curves.easeInOutCubicEmphasized,
     );
   }
 
   void _scrollUp() {
-    int selectedIndex = (_controller.offset / _height).round();
-    if (selectedIndex > 0) {
-      selectedIndex--;
-      _scrollTo(selectedIndex);
+    int selcIdx = this.selectedIndex - 1;
+    if (selcIdx >= 0) {
+      _scrollTo(selcIdx);
     } else {
       _scrollTo(widget.items.length - 1);
     }
   }
 
   void _scrollDown() {
-    int selectedIndex = (_controller.offset / _height).round();
-    if (selectedIndex < widget.items.length - 1) {
-      selectedIndex++;
-      _scrollTo(selectedIndex);
+    int selcIdx = this.selectedIndex + 1;
+    if (selcIdx <= widget.items.length - 1) {
+      _scrollTo(selcIdx);
     } else {
       _scrollTo(0);
     }

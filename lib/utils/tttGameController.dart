@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:tritac3d/utils/appDesign.dart';
 import 'package:tritac3d/utils/tttGameSettings.dart';
 import 'package:vector_math/vector_math.dart';
 import 'package:vibration/vibration.dart';
@@ -65,11 +66,12 @@ class TTTGameController with ChangeNotifier {
   bool _backgroundMode = false;
   Function(bool)? _onBackgroundModeChange;
   Function(Vector3)? _onRegisteredmoveEvent;
+  late Appdesign _appDesign;
 
   /// Layer (top -> bottom)
   late List<List<List<TTTGameFieldState>>> gameState;
 
-  TTTGameController() {
+  TTTGameController(this._appDesign) {
     init();
   }
 
@@ -143,7 +145,6 @@ class TTTGameController with ChangeNotifier {
 
   /// call notifies the controllor of a pressed field
   void registeredMoveEvent(Vector3 eventCord) {
-    // print("REG MOVE");
     this._onRegisteredmoveEvent?.call(eventCord);
   }
 
@@ -153,13 +154,11 @@ class TTTGameController with ChangeNotifier {
         _winso.forEach((win) {
           _setWinHighlightedState(win);
         });
-
         break;
       case TTTFS.cross:
         _winsx.forEach((win) {
           _setWinHighlightedState(win);
         });
-
         break;
       default:
         return;
@@ -387,9 +386,8 @@ class TTTGameController with ChangeNotifier {
   bool setActiveLayer(int layer) {
     if (layer < _gameSettings.getGFSize() && _activeLayer != layer) {
       _activeLayer = layer;
-      if (hasVibrator) {
-        Vibration.vibrate(duration: 32, amplitude: 64);
-      }
+
+      // _appDesign.vibrateMovement();
       return true;
     }
     return false;

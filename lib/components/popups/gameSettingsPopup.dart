@@ -208,9 +208,10 @@ class _settingSliderState extends State<_settingSlider> {
                         activeColor: appDesign.fontActive,
                         inactiveColor: appDesign.fontInactive,
                         onChanged: (value) {
-                          appDesign.hasVibrator
-                              ? Vibration.vibrate(duration: 50, amplitude: 64)
-                              : null;
+                          // appDesign.hasVibrator
+                          //     ? Vibration.vibrate(duration: 50, amplitude: 64)
+                          //     : null;
+                          appDesign.vibrateMovement();
                           setState(() {
                             _value = value;
                           });

@@ -11,23 +11,22 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
+  Appdesign appdesign = Appdesign();
   runApp(
     MultiProvider(
         providers: [
           ChangeNotifierProvider<Appdesign>(
-            create: (context) => Appdesign(),
+            create: (context) => appdesign,
           ),
           ChangeNotifierProvider<TTTGameController>(
-            create: (context) => TTTGameController(),
+            create: (context) => TTTGameController(appdesign),
           ),
         ],
         child: Directionality(
             textDirection: TextDirection.ltr,
             child: DefaultTextStyle(
-                style: TextStyle(
-                  fontFamily: "Inter",
-                ),
+                style:
+                    TextStyle(fontFamily: "Inter", color: appdesign.fontActive),
                 child: SMain()))),
   );
 }

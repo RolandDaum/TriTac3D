@@ -103,12 +103,14 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
 
   Future<void> setVertPosition(double vertical) async {
     final gameController =
-        Provider.of<TTTGameController>(context, listen: false);
+            Provider.of<TTTGameController>(context, listen: false),
+        appDesign = Provider.of<Appdesign>(context, listen: false);
 
     verticalPosController.value = vertical;
 
     if (gameController.setActiveLayer(_getNearestLayerID())) {
       dyLastLayerFocusChange = 0;
+      appDesign.vibrateMovement();
     }
   }
 
@@ -161,7 +163,6 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
           milliseconds: 250,
           // 250 * ((gameController.getActiveLayer() - layerID).abs()) + 1),
         ),
-        // curve: Curves.easeInOutQuart);
         curve: Curves.bounceInOut);
   }
 
@@ -210,10 +211,9 @@ class TTTStackState extends State<TTTStack> with TickerProviderStateMixin {
                 gameController.getActiveLayer() != i
                     ? GestureDetector(
                         onTap: () async {
-                          setState(() {
-                            gameController.setActiveLayer(i);
-                          });
+                          gameController.setActiveLayer(i);
                           await focusOnLayerAnimated(i);
+                          appDesign.vibrateMovement();
                         },
                         child: Container(
                           height: appDesign.layerWidth,

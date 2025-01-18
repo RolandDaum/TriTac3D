@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:tritac3d/utils/WebRTCConnectionManager.dart';
+import 'package:tritac3d/utils/appDesign.dart';
 import 'package:tritac3d/utils/tttGameController.dart';
 import 'package:tritac3d/utils/tttGameManager.dart';
 import 'package:tritac3d/utils/tttGameSettings.dart';
@@ -14,6 +15,7 @@ import 'package:vector_math/vector_math.dart';
 class TTTGameManagerRTC implements TTTGameManager {
   late WebRTCConnectionManager _webRTCConnectionManager;
   TTTGameController? _tttGameController;
+  Appdesign? _appDesign;
   VoidCallback? _gameEnd;
   bool exchangedSettings = false;
   bool ownTurn = false;
@@ -36,19 +38,12 @@ class TTTGameManagerRTC implements TTTGameManager {
       switch (mData['type']) {
         case 'settings':
           TTTGameSettings gs = _tttGameController!.getGameSettings();
-          print((mData['settings']['gameFieldSize'] as int).toString() +
-              "  --  " +
-              gs.getGFSize().toString());
-          print((mData['settings']['requiredWins'] as int).toString() +
-              "  --  " +
-              gs.getRequiredWins().toString());
-          // Check for identical settings
+
           if ((mData['settings']['gameFieldSize'] as int) == gs.getGFSize() &&
               (mData['settings']['requiredWins'] as int) ==
                   gs.getRequiredWins()) {
             exchangedSettings = true;
 
-            //
             if (_webRTCConnectionManager.isHost() && Random().nextBool()) {
               ownTurn = false;
               _webRTCConnectionManager
@@ -56,8 +51,11 @@ class TTTGameManagerRTC implements TTTGameManager {
             } else if (_webRTCConnectionManager.isHost()) {
               (defaultTargetPlatform == TargetPlatform.iOS ||
                       defaultTargetPlatform == TargetPlatform.android)
-                  ? Fluttertoast.showToast(
-                      msg: "You move first", gravity: ToastGravity.BOTTOM)
+                  ? {
+                      Fluttertoast.showToast(
+                          msg: "You move first", gravity: ToastGravity.BOTTOM),
+                      _appDesign?.vibrateNotify()
+                    }
                   : null;
               ownTurn = true;
             }
@@ -92,8 +90,11 @@ class TTTGameManagerRTC implements TTTGameManager {
           }
           (defaultTargetPlatform == TargetPlatform.iOS ||
                   defaultTargetPlatform == TargetPlatform.android)
-              ? Fluttertoast.showToast(
-                  msg: "You move first", gravity: ToastGravity.BOTTOM)
+              ? {
+                  Fluttertoast.showToast(
+                      msg: "You move first", gravity: ToastGravity.BOTTOM),
+                  _appDesign?.vibrateNotify()
+                }
               : null;
           ownTurn = true;
           break;
@@ -131,8 +132,11 @@ class TTTGameManagerRTC implements TTTGameManager {
           } else {
             (defaultTargetPlatform == TargetPlatform.iOS ||
                     defaultTargetPlatform == TargetPlatform.android)
-                ? Fluttertoast.showToast(
-                    msg: "Opponed played", gravity: ToastGravity.BOTTOM)
+                ? {
+                    Fluttertoast.showToast(
+                        msg: "Opponed played", gravity: ToastGravity.BOTTOM),
+                    _appDesign?.vibrateNotify()
+                  }
                 : null;
             ownTurn = true;
           }
@@ -149,7 +153,7 @@ class TTTGameManagerRTC implements TTTGameManager {
     });
 
     _tttGameController!.setOnRegisteredMoveEvent((move) {
-      print("OWN TURN ?? " + ownTurn.toString());
+      // print("OWN TURN ?? " + ownTurn.toString());
       if (!ownTurn) {
         return;
       }
@@ -228,5 +232,10 @@ class TTTGameManagerRTC implements TTTGameManager {
     } else {
       return false;
     }
+  }
+
+  @override
+  void setAppDesign(Appdesign appdesign) {
+    this._appDesign = appdesign;
   }
 }

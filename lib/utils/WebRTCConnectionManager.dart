@@ -185,7 +185,7 @@ class WebRTCConnectionManager {
     // Just the event handler on different peer connection state events
     _peerConnection!.onConnectionState = (state) {
       _onPeerConnectionState?.call(state);
-      print(state.name);
+      // print(state.name);
       switch (state) {
         case RTCPeerConnectionState.RTCPeerConnectionStateNew:
           break;
@@ -213,7 +213,7 @@ class WebRTCConnectionManager {
       };
       _dataChannel!.onDataChannelState = (state) async {
         _onDataChannelState?.call(state);
-        print(state.name);
+        // print(state.name);
         switch (state) {
           case RTCDataChannelState.RTCDataChannelConnecting:
             break;
@@ -258,7 +258,7 @@ class WebRTCConnectionManager {
 
   /// Sends the given data via the data channel
   Future<void> sendData(String data) async {
-    print(data);
+    // print(data);
     if (_dataChannel?.state == RTCDataChannelState.RTCDataChannelOpen) {
       await _dataChannel?.send(RTCDataChannelMessage(data));
     }

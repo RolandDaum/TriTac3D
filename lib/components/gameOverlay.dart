@@ -94,36 +94,43 @@ class _GameOverlayState extends State<GameOverlay>
         Tween<Offset>(begin: Offset(0, -1), end: Offset.zero).animate(
       CurvedAnimation(
         parent: _acTitle,
-        curve: Curves.easeInOut,
+        curve: Curves.easeInOutCubicEmphasized,
       ),
     );
     _gameButtonAnimation =
         Tween<Offset>(begin: Offset(0, 1), end: Offset.zero).animate(
-      CurvedAnimation(parent: _acGameButton, curve: Curves.easeInOutQuart),
+      CurvedAnimation(
+          parent: _acGameButton, curve: Curves.easeInOutCubicEmphasized),
     );
     _gameSettingAnimation =
         Tween<Offset>(begin: Offset(0, 1), end: Offset.zero).animate(
-      CurvedAnimation(parent: _acGameSetting, curve: Curves.easeInOutQuart),
+      CurvedAnimation(
+          parent: _acGameSetting, curve: Curves.easeInOutCubicEmphasized),
     );
     _gameConnectionAnimation =
         Tween<Offset>(begin: Offset(0, 1), end: Offset.zero).animate(
-      CurvedAnimation(parent: _acGameConnection, curve: Curves.easeInOutQuart),
+      CurvedAnimation(
+          parent: _acGameConnection, curve: Curves.easeInOutCubicEmphasized),
     );
     _gameConnectionHostAnimation =
         Tween<Offset>(begin: Offset(0, 1), end: Offset.zero).animate(
       CurvedAnimation(
-          parent: _acGameConnectionHost, curve: Curves.easeInOutQuart),
+          parent: _acGameConnectionHost,
+          curve: Curves.easeInOutCubicEmphasized),
     );
     _gameConnectionJoinAnimation =
         Tween<Offset>(begin: Offset(0, 1), end: Offset.zero).animate(
       CurvedAnimation(
-          parent: _acGameConnectionJoin, curve: Curves.easeInOutQuart),
+          parent: _acGameConnectionJoin,
+          curve: Curves.easeInOutCubicEmphasized),
     );
     _gamePlay = Tween<Offset>(begin: Offset(0, 1), end: Offset.zero).animate(
-      CurvedAnimation(parent: _acGamePlay, curve: Curves.easeInOutQuart),
+      CurvedAnimation(
+          parent: _acGamePlay, curve: Curves.easeInOutCubicEmphasized),
     );
     _gameEnd = Tween<Offset>(begin: Offset(0, 1), end: Offset.zero).animate(
-      CurvedAnimation(parent: _acGameEnd, curve: Curves.easeInOutQuart),
+      CurvedAnimation(
+          parent: _acGameEnd, curve: Curves.easeInOutCubicEmphasized),
     );
 
     _acTitle.forward();
@@ -134,11 +141,6 @@ class _GameOverlayState extends State<GameOverlay>
   void initState() {
     _animationControllerInit();
     BackButtonInterceptor.add(backInterceptor);
-    // if (kIsWeb) {
-    //   html.window.onPopState.listen((event) {
-    //     backInterceptor(true, RouteInfo());
-    //   });
-    // }
 
     super.initState();
   }
@@ -282,9 +284,11 @@ class _GameOverlayState extends State<GameOverlay>
   }
 
   void _prepareTTTGameManager(TTTGameManager? gameManager) {
+    final appDesign = Provider.of<Appdesign>(context, listen: false);
     this.tttGameManager = gameManager;
 
     gameManager?.setGameController(tttGameController);
+    gameManager?.setAppDesign(appDesign);
 
     tttGameManager?.setOnGameEnd(() {
       if (tttGameManager!.isOpenForRevenge()) {

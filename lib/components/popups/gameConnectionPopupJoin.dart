@@ -26,7 +26,21 @@ class Gameconnectionpopupjoin extends StatefulWidget {
 class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
   final WebRTCConnectionManager webRTCConnectionManager =
       WebRTCConnectionManager();
-  String _gameCode = "";
+
+  List<String> _codeAlphabet = [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ];
+  List<String> _codeList = ["", "", "", ""];
+
   bool connected = false;
 
   @override
@@ -65,10 +79,42 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          _gameCodeSelector(
-            onCodeChange: (code) {
-              _gameCode = code;
-            },
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ScrollSelector(
+                items: _codeAlphabet,
+                initIndex: _codeAlphabet.indexOf(_codeList[0]),
+                onScroll: (num) {
+                  _codeList[0] = num.toString();
+                },
+              ),
+              _vertSeperator(),
+              ScrollSelector(
+                items: _codeAlphabet,
+                initIndex: _codeAlphabet.indexOf(_codeList[1]),
+                onScroll: (num) {
+                  _codeList[1] = num.toString();
+                },
+              ),
+              _vertSeperator(),
+              ScrollSelector(
+                items: _codeAlphabet,
+                initIndex: _codeAlphabet.indexOf(_codeList[2]),
+                onScroll: (num) {
+                  _codeList[2] = num.toString();
+                },
+              ),
+              _vertSeperator(),
+              ScrollSelector(
+                items: _codeAlphabet,
+                initIndex: _codeAlphabet.indexOf(_codeList[3]),
+                onScroll: (num) {
+                  _codeList[3] = num.toString();
+                },
+              ),
+            ],
           ),
           SizedBox(
             height: 20,
@@ -76,7 +122,7 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
           TTTButton(
             padding: EdgeInsets.symmetric(vertical: 20, horizontal: 0),
             onPressed: () {
-              webRTCConnectionManager.joinGame(_gameCode);
+              webRTCConnectionManager.joinGame(_codeList.join());
             },
             text: "CONTINUE",
           ),
@@ -90,7 +136,7 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
                 if (!(clipbaordData != null && clipbaordData.text != null)) {
                   return;
                 }
-                List<String> charList = clipbaordData!.text!.split('');
+                List<String> charList = clipbaordData.text!.split('');
                 if (charList.length == 4 &&
                     charList.any((char) => [
                           "0",
@@ -105,9 +151,9 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
                           "9"
                         ].contains(char))) {
                   setState(() {
-                    _gameCode = charList.join();
+                    _codeList = charList;
                   });
-                  webRTCConnectionManager.joinGame(_gameCode);
+                  webRTCConnectionManager.joinGame(_codeList.join());
                 }
               });
             },
@@ -115,53 +161,6 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
           )
         ],
       ),
-    );
-  }
-}
-
-class _gameCodeSelector extends StatelessWidget {
-  final Function(String)? onCodeChange;
-
-  _gameCodeSelector({this.onCodeChange});
-
-  void _onChanges(List<String> codeList, String value, int index) {
-    codeList[index] = value;
-    if (onCodeChange != null) {
-      onCodeChange!(codeList.join());
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    List<String> _codeList = ["", "", "", ""];
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ScrollSelector(
-          onScroll: (num) {
-            _onChanges(_codeList, num.toString(), 0);
-          },
-        ),
-        _vertSeperator(),
-        ScrollSelector(
-          onScroll: (num) {
-            _onChanges(_codeList, num.toString(), 1);
-          },
-        ),
-        _vertSeperator(),
-        ScrollSelector(
-          onScroll: (num) {
-            _onChanges(_codeList, num.toString(), 2);
-          },
-        ),
-        _vertSeperator(),
-        ScrollSelector(
-          onScroll: (num) {
-            _onChanges(_codeList, num.toString(), 3);
-          },
-        ),
-      ],
     );
   }
 }

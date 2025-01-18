@@ -32,6 +32,22 @@ class Appdesign with ChangeNotifier {
       EdgeInsets.symmetric(vertical: 20, horizontal: 20);
   BorderRadius popupContainerRadius = BorderRadius.circular(20);
 
+  void vibrateMovement() async {
+    if (!hasVibrator) {
+      return;
+    }
+    Vibration.vibrate(duration: 50, amplitude: 95);
+  }
+
+  void vibrateNotify() async {
+    if (!hasVibrator) {
+      return;
+    }
+    await Vibration.vibrate(duration: 50, amplitude: 95);
+    await Future.delayed(Duration(milliseconds: 100));
+    await Vibration.vibrate(duration: 50, amplitude: 95);
+  }
+
   Appdesign() {
     init();
   }
@@ -71,8 +87,6 @@ class Appdesign with ChangeNotifier {
               .instance.platformDispatcher.views.first.physicalSize.width /
           PlatformDispatcher.instance.views.first.devicePixelRatio;
       double tmpLayerWidth = ((screenWidth * sqrt(2)) / 2) - 20;
-      print(screenWidth);
-      print(tmpLayerWidth);
       if (tmpLayerWidth > 300 || tmpLayerWidth <= 0) {
         layerWidth = 300;
       } else if (layerWidth != tmpLayerWidth) {

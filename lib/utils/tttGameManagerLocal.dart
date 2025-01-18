@@ -1,17 +1,19 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:tritac3d/utils/appDesign.dart';
 import 'package:tritac3d/utils/tttGameController.dart';
 import 'package:tritac3d/utils/tttGameManager.dart';
 
 class TTTGameManagerLocal implements TTTGameManager {
   TTTGameController? _tttGameController;
+  Appdesign? _appDesign;
   VoidCallback? _gameEnd;
 
   @override
   void startGame() {
     int moveCount = 0;
-    // _tttGameController!.setBackgroundMode(false);
+    _tttGameController!.clearGame();
 
     _tttGameController!.setOnRegisteredMoveEvent((move) {
       if (_tttGameController!.getField(move).getState() != TTTFS.empty) {
@@ -67,4 +69,8 @@ class TTTGameManagerLocal implements TTTGameManager {
     return true;
   }
 
+  @override
+  void setAppDesign(Appdesign appdesign) {
+    this._appDesign = appdesign;
+  }
 }
