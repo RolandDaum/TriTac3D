@@ -21,6 +21,7 @@ dependencies:
   firebase_database: ^11.2.0
   flutter_native_splash: ^2.4.4
   fluttertoast: ^8.2.10
+  # google_mobile_ads: ^5.2.0
 
 dev_dependencies:
   flutter_test:

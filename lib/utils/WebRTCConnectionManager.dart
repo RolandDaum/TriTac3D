@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class WebRTCConnectionManager {
   /// - V A R s - ///
@@ -56,7 +57,9 @@ class WebRTCConnectionManager {
         .ref('games/$_gameCode/answer')
         .onValue
         .listen((event) async {
-      if (event.snapshot.value != null) {
+      if (event.snapshot.value != null &&
+          _peerConnection!.signalingState !=
+              RTCSignalingState.RTCSignalingStateStable) {
         // Sets the answer as remote Description
         Map<String, dynamic> data =
             (event.snapshot.value as Map).cast<String, dynamic>();
@@ -91,8 +94,10 @@ class WebRTCConnectionManager {
   /// Joins a game offer from the Firebase Realtime DB under the subdirectory games/{STRING gameCode}
   Future<void> joinGame(String gameCode) async {
     if (_peerConnection?.connectionState != null &&
-        _peerConnection!.connectionState ==
-            RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
+        (_peerConnection!.connectionState ==
+                RTCPeerConnectionState.RTCPeerConnectionStateConnecting ||
+            _peerConnection!.signalingState !=
+                RTCSignalingState.RTCSignalingStateClosed)) {
       return;
     }
     await dispose();
@@ -100,16 +105,22 @@ class WebRTCConnectionManager {
     await _createPeerConnection();
 
     // Gets the corresponding remote Description from given gameCode directory
-    await _rltdb.ref('games/$_gameCode/offer').once().then((event) async {
-      if (event.snapshot.value != null) {
-        // Sets the offer as remote Description
-        Map<String, dynamic> offer =
-            (event.snapshot.value as Map).cast<String, dynamic>();
-        await _peerConnection?.setRemoteDescription(
-          RTCSessionDescription(offer['sdp'], offer['type']),
-        );
-      }
-    });
+    DatabaseEvent dbEvent = await _rltdb.ref('games/$_gameCode/offer').once();
+    if (dbEvent.snapshot.value != null &&
+        _peerConnection!.signalingState !=
+            RTCSignalingState.RTCSignalingStateStable) {
+      // Sets the offer as remote Description
+      Map<String, dynamic> offer =
+          (dbEvent.snapshot.value as Map).cast<String, dynamic>();
+      await _peerConnection?.setRemoteDescription(
+        RTCSessionDescription(offer['sdp'], offer['type']),
+      );
+    } else {
+      Fluttertoast.showToast(
+          msg: "Game not found", gravity: ToastGravity.BOTTOM);
+      await dispose();
+      return;
+    }
 
     // Generate Answer, Set Answer as local Description, Write Answer to rltdb
     RTCSessionDescription answer = await _peerConnection!.createAnswer();
@@ -190,6 +201,8 @@ class WebRTCConnectionManager {
         case RTCPeerConnectionState.RTCPeerConnectionStateNew:
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateConnecting:
+          // Fluttertoast.showToast(
+          //     msg: "Connecting with opponend", gravity: ToastGravity.BOTTOM);
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
           _onConnectionEstablished();
@@ -206,6 +219,23 @@ class WebRTCConnectionManager {
       }
     };
 
+    _peerConnection!.onSignalingState = (state) {
+      switch (state) {
+        case RTCSignalingState.RTCSignalingStateClosed:
+          break;
+        case RTCSignalingState.RTCSignalingStateHaveLocalOffer:
+          break;
+        case RTCSignalingState.RTCSignalingStateHaveLocalPrAnswer:
+          break;
+        case RTCSignalingState.RTCSignalingStateHaveRemoteOffer:
+          break;
+        case RTCSignalingState.RTCSignalingStateHaveRemotePrAnswer:
+          break;
+        case RTCSignalingState.RTCSignalingStateStable:
+          break;
+      }
+    };
+
     // Init all the different dataChannel events
     Function initDataChannelEvents = () {
       _dataChannel!.onMessage = (message) {
@@ -213,7 +243,6 @@ class WebRTCConnectionManager {
       };
       _dataChannel!.onDataChannelState = (state) async {
         _onDataChannelState?.call(state);
-        // print(state.name);
         switch (state) {
           case RTCDataChannelState.RTCDataChannelConnecting:
             break;

@@ -40,11 +40,16 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
     "9"
   ];
   List<String> _codeList = ["", "", "", ""];
+  Map<int, GlobalKey<ScrollSelectorState>> _scrollSelectorKeys = {};
 
   bool connected = false;
 
   @override
   void initState() {
+    for (int i = 0; i < 4; i++) {
+      _scrollSelectorKeys[i] = GlobalKey<ScrollSelectorState>();
+    }
+
     webRTCConnectionManager.connectionEstablished = () {
       connected = true;
       widget.onTTTGameManagerCreation
@@ -65,6 +70,12 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
     super.dispose();
   }
 
+  void updateSelectedIndex() {
+    _scrollSelectorKeys.forEach((index, key) {
+      key.currentState?.scrollTo(_codeAlphabet.indexOf(_codeList[index]));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final Appdesign appDesign = Provider.of<Appdesign>(context);
@@ -82,39 +93,22 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ScrollSelector(
-                items: _codeAlphabet,
-                initIndex: _codeAlphabet.indexOf(_codeList[0]),
-                onScroll: (num) {
-                  _codeList[0] = num.toString();
-                },
-              ),
-              _vertSeperator(),
-              ScrollSelector(
-                items: _codeAlphabet,
-                initIndex: _codeAlphabet.indexOf(_codeList[1]),
-                onScroll: (num) {
-                  _codeList[1] = num.toString();
-                },
-              ),
-              _vertSeperator(),
-              ScrollSelector(
-                items: _codeAlphabet,
-                initIndex: _codeAlphabet.indexOf(_codeList[2]),
-                onScroll: (num) {
-                  _codeList[2] = num.toString();
-                },
-              ),
-              _vertSeperator(),
-              ScrollSelector(
-                items: _codeAlphabet,
-                initIndex: _codeAlphabet.indexOf(_codeList[3]),
-                onScroll: (num) {
-                  _codeList[3] = num.toString();
-                },
-              ),
-            ],
+            children: List.generate(4, (index) {
+              return Row(
+                children: [
+                  ScrollSelector(
+                    key: _scrollSelectorKeys[index],
+                    items: _codeAlphabet,
+                    onScroll: (value) {
+                      setState(() {
+                        _codeList[index] = value;
+                      });
+                    },
+                  ),
+                  if (index < 3) const _vertSeperator(),
+                ],
+              );
+            }),
           ),
           SizedBox(
             height: 20,
@@ -138,21 +132,12 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
                 }
                 List<String> charList = clipbaordData.text!.split('');
                 if (charList.length == 4 &&
-                    charList.any((char) => [
-                          "0",
-                          "1",
-                          "2",
-                          "3",
-                          "4",
-                          "5",
-                          "6",
-                          "7",
-                          "8",
-                          "9"
-                        ].contains(char))) {
+                    charList.any((char) => _codeAlphabet.contains(char))) {
                   setState(() {
                     _codeList = charList;
                   });
+
+                  updateSelectedIndex();
                   webRTCConnectionManager.joinGame(_codeList.join());
                 }
               });

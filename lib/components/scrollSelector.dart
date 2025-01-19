@@ -7,18 +7,18 @@ import 'package:tritac3d/utils/appDesign.dart';
 class ScrollSelector extends StatefulWidget {
   final Function(String)? onScroll;
   final List<String> items;
-  int initIndex;
 
-  ScrollSelector(
-      {this.onScroll,
-      this.items = const ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-      this.initIndex = 0});
+  ScrollSelector({
+    super.key,
+    this.onScroll,
+    this.items = const ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+  });
 
   @override
-  _ScrollSelectorState createState() => _ScrollSelectorState();
+  ScrollSelectorState createState() => ScrollSelectorState();
 }
 
-class _ScrollSelectorState extends State<ScrollSelector> {
+class ScrollSelectorState extends State<ScrollSelector> {
   final ScrollController _controller = ScrollController();
   final double _height = 100.0;
   final double _width = 50.0;
@@ -27,17 +27,14 @@ class _ScrollSelectorState extends State<ScrollSelector> {
   @override
   void initState() {
     super.initState();
-    if (!(widget.initIndex < 0 || widget.initIndex > widget.items.length - 1)) {
-      selectedIndex = widget.initIndex;
-    }
     _controller.addListener(_scrollListener);
   }
 
-  @override
-  void didChangeDependencies() {
-    widget.onScroll?.call(widget.items[0]);
-    super.didChangeDependencies();
-  }
+  // @override
+  // void didChangeDependencies() {
+  //   // widget.onScroll?.call(widget.items[0]);
+  //   super.didChangeDependencies();
+  // }
 
   @override
   void dispose() {
@@ -54,7 +51,7 @@ class _ScrollSelectorState extends State<ScrollSelector> {
     }
   }
 
-  void _scrollTo(int index) async {
+  void scrollTo(int index) async {
     if (index < 0 || index > widget.items.length - 1) {
       return;
     }
@@ -70,18 +67,18 @@ class _ScrollSelectorState extends State<ScrollSelector> {
   void _scrollUp() {
     int selcIdx = this.selectedIndex - 1;
     if (selcIdx >= 0) {
-      _scrollTo(selcIdx);
+      scrollTo(selcIdx);
     } else {
-      _scrollTo(widget.items.length - 1);
+      scrollTo(widget.items.length - 1);
     }
   }
 
   void _scrollDown() {
     int selcIdx = this.selectedIndex + 1;
     if (selcIdx <= widget.items.length - 1) {
-      _scrollTo(selcIdx);
+      scrollTo(selcIdx);
     } else {
-      _scrollTo(0);
+      scrollTo(0);
     }
   }
 

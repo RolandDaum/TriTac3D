@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:tritac3d/utils/appDesign.dart';
 import 'package:tritac3d/utils/tttGameController.dart';
 import 'package:vector_math/vector_math.dart' as vm;
+import 'package:flutter/foundation.dart';
 
 class TTTField extends StatefulWidget {
   final TTTGameController gameController;
@@ -70,13 +71,23 @@ class _TTTFieldSState extends State<TTTField> {
                     ? appDesign.fontActive
                     : appDesign.fontInactive,
                 width: 1)),
-        child:
-            // Center(child: Text(widget.cordID.toString())
-            CustomPaint(
-          size: Size(fieldLength - 10, fieldLength - 10),
-          painter: getFieldPainer(
-              widget.gameController.getField(widget.cordID).getState()),
-        ),
+        child: kDebugMode
+            ? Stack(
+                children: [
+                  CustomPaint(
+                    size: Size(fieldLength - 10, fieldLength - 10),
+                    painter: getFieldPainer(widget.gameController
+                        .getField(widget.cordID)
+                        .getState()),
+                  ),
+                  Text(widget.cordID.toString())
+                ],
+              )
+            : CustomPaint(
+                size: Size(fieldLength - 10, fieldLength - 10),
+                painter: getFieldPainer(
+                    widget.gameController.getField(widget.cordID).getState()),
+              ),
       ),
     );
   }

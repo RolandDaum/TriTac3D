@@ -136,9 +136,11 @@ class TTTGameController with ChangeNotifier {
   void setMove(Vector3 move, TTTFS state) {
     bool updated = gameState[move.x.toInt()][move.y.toInt()][move.z.toInt()]
         .setState(state);
+
     if (updated) {
       _lastMoveID = move;
       checkforwin();
+
       updateGameUI();
     }
   }
@@ -230,132 +232,136 @@ class TTTGameController with ChangeNotifier {
     int x = getField(_lastMoveID!).getId().x.toInt();
     int y = getField(_lastMoveID!).getId().y.toInt();
     int z = getField(_lastMoveID!).getId().z.toInt();
+    double xd = getField(_lastMoveID!).getId().x;
+    double yd = getField(_lastMoveID!).getId().y;
+    double zd = getField(_lastMoveID!).getId().z;
     TTTFS lastFieldState = getLastField()!.getState();
 
     List<_WIN> wins = [];
     int nGS = _gameSettings.getGFSize();
-    // TODO: Check if the point is even on the line -> Works either way, cause were checking only the last played symbol -> but there might be some unncessery checks -> not to heavy on small cubes
-    // (1 0 0)
-    for (int i = 0; i < nGS; i++) {
-      if (lastFieldState != gameState[i][y][z].getState()) {
-        break;
-      } else if (i == nGS - 1) {
-        wins.add(
-            _WIN(Vector3(0, y.toDouble(), z.toDouble()), Vector3(1, 0, 0)));
-      }
-    }
-    // (0 1 0)
-    for (int i = 0; i < nGS; i++) {
-      if (lastFieldState != gameState[x][i][z].getState()) {
-        break;
-      } else if (i == nGS - 1) {
-        wins.add(
-            _WIN(Vector3(x.toDouble(), 0, z.toDouble()), Vector3(0, 1, 0)));
-      }
-    }
-    // (0 0 1)
-    for (int i = 0; i < nGS; i++) {
-      if (lastFieldState != gameState[x][y][i].getState()) {
-        break;
-      } else if (i == nGS - 1) {
-        wins.add(
-            _WIN(Vector3(x.toDouble(), y.toDouble(), 0), Vector3(0, 0, 1)));
-      }
-    }
 
-    // (1 1 0)
-    for (int i = 0; i < nGS; i++) {
-      if (lastFieldState != gameState[i][i][z].getState()) {
-        break;
-      } else if (i == nGS - 1) {
-        wins.add(_WIN(Vector3(0, 0, z.toDouble()), Vector3(1, 1, 0)));
-      }
-    }
-    // (1 -1 0)
-    for (int i = 0; i < nGS; i++) {
-      if (lastFieldState != gameState[i][nGS - i - 1][z].getState()) {
-        break;
-      } else if (i == nGS - 1) {
-        wins.add(_WIN(Vector3(0, nGS - 1, z.toDouble()), Vector3(1, -1, 0)));
-      }
-    }
-    // (1 0 1)
-    for (int i = 0; i < nGS; i++) {
-      if (lastFieldState != gameState[i][y][i].getState()) {
-        break;
-      } else if (i == nGS - 1) {
-        wins.add(_WIN(Vector3(0, y.toDouble(), 0), Vector3(1, 0, 1)));
-      }
-    }
-    // (1 0 -1)
-    for (int i = 0; i < nGS; i++) {
-      if (lastFieldState != gameState[i][y][nGS - i - 1].getState()) {
-        break;
-      } else if (i == nGS - 1) {
-        wins.add(_WIN(Vector3(0, y.toDouble(), nGS - 1), Vector3(1, 0, -1)));
-      }
-    }
-    // (0 1 1)
-    for (int i = 0; i < nGS; i++) {
-      if (lastFieldState != gameState[x][i][i].getState()) {
-        break;
-      } else if (i == nGS - 1) {
-        wins.add(_WIN(Vector3(x.toDouble(), 0, 0), Vector3(0, 1, 1)));
-      }
-    }
-    // (0 1 -1)
-    for (int i = 0; i < nGS; i++) {
-      if (lastFieldState != gameState[x][i][nGS - i - 1].getState()) {
-        break;
-      } else if (i == nGS - 1) {
-        wins.add(_WIN(Vector3(x.toDouble(), 0, nGS - 1), Vector3(0, 1, -1)));
-      }
-    }
+    //  ---  CASES  ---  //
+    // Straight lines
+    // 1 0 0   |   X
+    // 0 1 0   |   Y
+    // 0 0 1   |   Z
+    // --- //
+    // Diagonal Lines
+    //  0  1  1    |    Y  Z
+    //  0 -1  1    |   -Y  Z
+    //  1  0  1    |    X  Z
+    // -1  0  1    |   -X  Z
+    //  1  1  0    |    X  Y
+    //  1 -1  0    |    X -Y
+    // --- //
+    // 3D Diagonal Lines
+    //  1  1  1   |    X  Y  Z
+    // -1 -1  1   |   -X -Y  Z
+    //  1 -1  1   |    X -Y  Z
+    // -1  1  1   |   -X  Y  Z
 
-    // (1 1 1)
+    ///  ---  CASES - WRITTEN  ---  ///
+    // Straight lines
+    ///
+    bool IOO = true;
+    bool OIO = true;
+    bool OOI = true;
+    // Diagonal Lines
+    bool OII = true;
+    bool OiI = true;
+    bool IOI = true;
+    bool iOI = true;
+    bool IIO = true;
+    bool IiO = true;
+    // 3D Diagonal Lines
+    bool III = true;
+    bool iiI = true;
+    bool IiI = true;
+    bool iII = true;
     for (int i = 0; i < nGS; i++) {
-      if (lastFieldState != gameState[i][i][i].getState()) {
-        break;
-      } else if (i == nGS - 1) {
-        wins.add(_WIN(Vector3(0, 0, 0), Vector3(1, 1, 1)));
-      }
-    }
+      int ii = nGS - i - 1; // i counted from the opposit direction
+      // Straight lines
+      // 1 0 0   |   X
+      lastFieldState != gameState[i][y][z].getState() ? IOO = false : null;
+      // 0 1 0   |   Y
+      lastFieldState != gameState[x][i][z].getState() ? OIO = false : null;
+      // 0 0 1   |   Z
+      lastFieldState != gameState[x][y][i].getState() ? OOI = false : null;
 
-    // (1 1 -1)
-    for (int i = 0; i < nGS; i++) {
-      if (lastFieldState != gameState[i][i][nGS - i - 1].getState()) {
-        break;
-      } else if (i == nGS - 1) {
-        wins.add(_WIN(Vector3(0, 0, nGS - 1), Vector3(1, 1, -1)));
-      }
-    }
-    // (-1 1 1)
-    for (int i = 0; i < nGS; i++) {
-      if (lastFieldState != gameState[nGS - i - 1][i][i].getState()) {
-        break;
-      } else if (i == nGS - 1) {
-        wins.add(_WIN(Vector3(nGS - 1, 0, 0), Vector3(-1, 1, 1)));
-      }
-    }
-    // (-1 1 -1)
-    for (int i = 0; i < nGS; i++) {
-      if (lastFieldState != gameState[nGS - i - 1][i][nGS - i - 1].getState()) {
-        break;
-      } else if (i == nGS - 1) {
-        wins.add(_WIN(Vector3(nGS - 1, 0, nGS - 1), Vector3(-1, 1, -1)));
+      // --- //
+
+      // Diagonal Lines
+      //  0  1  1    |    Y  Z
+      lastFieldState != gameState[x][i][i].getState() ? OII = false : null;
+      //  0 -1  1    |   -Y  Z
+      lastFieldState != gameState[x][ii][i].getState() ? OiI = false : null;
+      //  1  0  1    |    X  Z
+      lastFieldState != gameState[i][y][i].getState() ? IOI = false : null;
+      // -1  0  1    |   -X  Z
+      lastFieldState != gameState[ii][y][i].getState() ? iOI = false : null;
+      //  1  1  0    |    X  Y
+      lastFieldState != gameState[i][i][z].getState() ? IIO = false : null;
+      //  1 -1  0    |    X -Y
+      lastFieldState != gameState[i][ii][z].getState() ? IiO = false : null;
+
+      // --- //
+
+      // 3D Diagonal Lines
+      //  1  1  1   |    X  Y  Z
+      lastFieldState != gameState[i][i][i].getState() ? III = false : null;
+      // -1 -1  1   |   -X -Y  Z
+      lastFieldState != gameState[ii][ii][i].getState() ? iiI = false : null;
+      //  1 -1  1   |    X -Y  Z
+      lastFieldState != gameState[i][ii][i].getState() ? IiI = false : null;
+      // -1  1  1   |   -X  Y  Z
+      lastFieldState != gameState[ii][i][i].getState() ? iII = false : null;
+
+      // --- //
+
+      // END CHECK
+      if (i == (nGS - 1)) {
+        IOO ? wins.add(_WIN(Vector3(0, yd, zd), Vector3(1, 0, 0))) : null;
+        OIO ? wins.add(_WIN(Vector3(xd, 0, zd), Vector3(0, 1, 0))) : null;
+        OOI ? wins.add(_WIN(Vector3(xd, yd, 0), Vector3(0, 0, 1))) : null;
+
+        OII ? wins.add(_WIN(Vector3(xd, 0, 0), Vector3(0, 1, 1))) : null;
+        OiI ? wins.add(_WIN(Vector3(xd, nGS - 1, 0), Vector3(0, -1, 1))) : null;
+        IOI ? wins.add(_WIN(Vector3(0, yd, 0), Vector3(1, 0, 1))) : null;
+        iOI ? wins.add(_WIN(Vector3(nGS - 1, yd, 0), Vector3(-1, 0, 1))) : null;
+        IIO ? wins.add(_WIN(Vector3(0, 0, zd), Vector3(1, 1, 0))) : null;
+        IiO ? wins.add(_WIN(Vector3(0, nGS - 1, zd), Vector3(1, -1, 0))) : null;
+
+        III ? wins.add(_WIN(Vector3(0, 0, 0), Vector3(1, 1, 1))) : null;
+        iiI
+            ? wins.add(_WIN(Vector3(nGS - 1, nGS - 1, 0), Vector3(-1, -1, 1)))
+            : null;
+        IiI ? wins.add(_WIN(Vector3(0, nGS - 1, 0), Vector3(1, -1, 1))) : null;
+        iII ? wins.add(_WIN(Vector3(nGS - 1, 0, 0), Vector3(-1, 1, 1))) : null;
       }
     }
 
     if (wins.isEmpty) {
       return;
     }
-    // TODO: SOMEWHERE AFTER HERE MUST BE A MISTAKE -> WINS GET ADDED TO BOTH _winso and _winsx or something else -> CHECK !!!
 
     // Merges the existing and new wins togther while removing duplicates
     if (lastFieldState == TTTFS.cricle) {
+      // wins.forEach((win) {
+      //   if (!_winso.contains(win)) {
+      //     _winso.add(win);
+      //   } else {}
+      // });
       _winso = <_WIN>{..._winso, ...wins}.toList();
       // _updateGameStateWins();
     } else if (lastFieldState == TTTFS.cross) {
+      // wins.forEach((win) {
+      //   if (!_winsx.contains(win)) {
+      //     _winsx.add(win);
+      //     print("NEW: " + win.toString());
+      //   } else {
+      //     print("OLD: " + win.toString());
+      //   }
+      // });
       _winsx = <_WIN>{..._winsx, ...wins}.toList();
       // _updateGameStateWins();
     }
@@ -516,11 +522,9 @@ class _WIN {
     return '$point - $direction';
   }
 
+  // DEFINES when two win objects are == -> affes list.contains() operation
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _WIN && identical(hashCode, other.hashCode);
-
-  @override
-  int get hashCode => point.hashCode ^ direction.hashCode;
+      other is _WIN && (point == other.point) && (direction == other.direction);
 }

@@ -109,6 +109,8 @@ class TTTGameManagerRTC implements TTTGameManager {
                   (mData['move']['z'] as int).toDouble()),
               _tttGameController!.getLastField()?.getInvertedState() ??
                   (Random().nextBool() ? TTTFS.cricle : TTTFS.cross));
+          _moveCount++;
+
           _tttGameController!.highlightWins(
               _tttGameController!.getLastField()!.getInvertedState());
           _tttGameController!
