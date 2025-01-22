@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tritac3d/utils/appDesign.dart';
 import 'package:tritac3d/utils/tttGameSettings.dart';
@@ -346,25 +347,20 @@ class TTTGameController with ChangeNotifier {
 
     // Merges the existing and new wins togther while removing duplicates
     if (lastFieldState == TTTFS.cricle) {
-      // wins.forEach((win) {
-      //   if (!_winso.contains(win)) {
-      //     _winso.add(win);
-      //   } else {}
-      // });
-      _winso = <_WIN>{..._winso, ...wins}.toList();
-      // _updateGameStateWins();
+      wins.forEach((win) {
+        if (!_winso.contains(win)) {
+          _winso.add(win);
+        }
+      });
     } else if (lastFieldState == TTTFS.cross) {
-      // wins.forEach((win) {
-      //   if (!_winsx.contains(win)) {
-      //     _winsx.add(win);
-      //     print("NEW: " + win.toString());
-      //   } else {
-      //     print("OLD: " + win.toString());
-      //   }
-      // });
-      _winsx = <_WIN>{..._winsx, ...wins}.toList();
-      // _updateGameStateWins();
+      wins.forEach((win) {
+        if (!_winsx.contains(win)) {
+          _winsx.add(win);
+        }
+      });
     }
+    kDebugMode ? print(_winso) : null;
+    kDebugMode ? print(_winsx) : null;
   }
 
   /// Resets and fills the gameState with random TTTFS states based on the given chance

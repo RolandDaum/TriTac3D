@@ -143,4 +143,10 @@ class Appdesign with ChangeNotifier {
           darkmode ? Brightness.light : Brightness.dark,
     ));
   }
+
+  void setStatusbarColor(Color color) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: color,
+    ));
+  }
 }

@@ -50,7 +50,11 @@ class WebRTCConnectionManager {
       'optional': [],
     });
     await _peerConnection!.setLocalDescription(offer);
-    _rltdb.ref('games/$_gameCode/offer').set(offer.toMap());
+    await _rltdb.ref('games/$_gameCode/offer').set(offer
+        .toMap()); // Needs to be await cause it creates the game code directory
+    _rltdb
+        .ref('games/$_gameCode')
+        .update({'tsmp': DateTime.now().millisecondsSinceEpoch.toString()});
 
     // Listener for an answer
     _rltdbListener.add(await _rltdb

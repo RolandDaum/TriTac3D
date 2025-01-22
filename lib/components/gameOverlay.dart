@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import 'package:tritac3d/components/popups/gameConnectionPopup.dart';
 import 'package:tritac3d/components/popups/gameConnectionPopupHost.dart';
@@ -11,10 +12,12 @@ import 'package:tritac3d/components/popups/gamePlayPopup.dart';
 import 'package:tritac3d/components/popups/gameSettingsPopup.dart';
 import 'package:tritac3d/components/popups/homeButtonsPopup.dart';
 import 'package:tritac3d/components/tttButton.dart';
+import 'package:tritac3d/utils/AdHelper.dart';
 import 'package:tritac3d/utils/appDesign.dart';
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:tritac3d/utils/tttGameController.dart';
 import 'package:tritac3d/utils/tttGameManager.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class GameOverlay extends StatefulWidget {
   /// This Widget will manage all the different App/Game overlays
@@ -35,7 +38,7 @@ enum acPopUpTypes {
 }
 
 class _GameOverlayState extends State<GameOverlay>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   // Animation Stuff
   acPopUpTypes currentPopUpType = acPopUpTypes.gameButton;
 
@@ -60,6 +63,8 @@ class _GameOverlayState extends State<GameOverlay>
 
   TTTGameManager? tttGameManager;
   late TTTGameController tttGameController;
+
+  List<RewardedAd> rewardedAds = [];
 
   void _animationControllerInit() {
     AnimationController Function() _createAnimationController = () {
@@ -141,7 +146,7 @@ class _GameOverlayState extends State<GameOverlay>
   void initState() {
     _animationControllerInit();
     BackButtonInterceptor.add(backInterceptor);
-
+    _loadRewardedAd();
     super.initState();
   }
 
@@ -159,6 +164,38 @@ class _GameOverlayState extends State<GameOverlay>
     this.tttGameManager = null;
     tttGameController.dispose();
     super.dispose();
+  }
+
+  void _loadRewardedAd() async {
+    if (!AdHelpber.isAdAble) {
+      return;
+    }
+    // Preloads 3 Ads
+    for (int i = 0; i < (4 - rewardedAds.length); i++) {
+      await RewardedAd.load(
+          adUnitId: AdHelpber.rewardedAdUnitId,
+          request: AdRequest(),
+          rewardedAdLoadCallback: RewardedAdLoadCallback(
+            onAdLoaded: (ad) async {
+              ad.setImmersiveMode(true);
+              setState(() {
+                rewardedAds.add(ad);
+              });
+            },
+            onAdFailedToLoad: (LoadAdError error) {
+              Connectivity()
+                  .onConnectivityChanged
+                  .listen((List<ConnectivityResult> results) {
+                results.forEach((result) {
+                  if (result != ConnectivityResult.none) {
+                    _loadRewardedAd();
+                    return;
+                  }
+                });
+              });
+            },
+          ));
+    }
   }
 
   /// Manages overlay navigation stuff
@@ -208,19 +245,50 @@ class _GameOverlayState extends State<GameOverlay>
     int reversedCount = _acControllers.length - 1;
     _acControllers.forEach((type, controller) {
       if (type != popUpType) {
-        controller.reverse().whenComplete(() {
+        controller.reverse().whenComplete(() async {
           reversedCount--;
+          // If all animations are reversed
           if (reversedCount == 0) {
-            _acControllers[popUpType]?.forward().whenComplete(() {
-              setState(() {
-                currentPopUpType = popUpType;
-                // if (kIsWeb) {
-                //   html.window.history
-                //       .pushState(null, "TriTac3D", 'tritac3d/' + type.name);
-                // }
-                ;
+            // Checks if player wants to host a game and rewaredeAd is not null else just let them host
+            if (popUpType == acPopUpTypes.gameConnectionHost &&
+                rewardedAds.isNotEmpty) {
+              // Shows the app
+              RewardedAd adFL = rewardedAds.first;
+              await adFL.show(onUserEarnedReward: (ad, reward) {});
+              // Ad close listener
+              adFL.fullScreenContentCallback = FullScreenContentCallback(
+                // Ad closed -> let player host game
+                onAdDismissedFullScreenContent: (AdWithoutView ad) {
+                  adFL.dispose();
+                  rewardedAds.remove(adFL);
+                  ad.dispose();
+                  _acControllers[popUpType]?.forward().whenComplete(() {
+                    setState(() {
+                      currentPopUpType = popUpType;
+                    });
+                  });
+                },
+                onAdFailedToShowFullScreenContent:
+                    (AdWithoutView ad, AdError error) {
+                  adFL.dispose();
+                  rewardedAds.remove(adFL);
+                  ad.dispose();
+                  _loadRewardedAd();
+                  _acControllers[popUpType]?.forward().whenComplete(() {
+                    setState(() {
+                      currentPopUpType = popUpType;
+                    });
+                  });
+                },
+              );
+              _loadRewardedAd();
+            } else {
+              _acControllers[popUpType]?.forward().whenComplete(() {
+                setState(() {
+                  currentPopUpType = popUpType;
+                });
               });
-            });
+            }
           }
         });
       }

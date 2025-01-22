@@ -8,7 +8,6 @@ import 'package:tritac3d/utils/tttGameController.dart';
 import 'package:tritac3d/utils/tttGameManager.dart';
 import 'package:tritac3d/utils/tttGameManagerLocal.dart';
 import 'package:tritac3d/utils/tttGameSettings.dart';
-import 'package:vibration/vibration.dart';
 
 class Gamesettingspopup extends StatefulWidget {
   final Function(acPopUpTypes type) switchToPopUp;
