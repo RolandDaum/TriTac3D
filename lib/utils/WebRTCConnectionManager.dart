@@ -4,6 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter/foundation.dart';
 
 class WebRTCConnectionManager {
   /// - V A R s - ///
@@ -110,9 +111,7 @@ class WebRTCConnectionManager {
 
     // Gets the corresponding remote Description from given gameCode directory
     DatabaseEvent dbEvent = await _rltdb.ref('games/$_gameCode/offer').once();
-    if (dbEvent.snapshot.value != null &&
-        _peerConnection!.signalingState !=
-            RTCSignalingState.RTCSignalingStateStable) {
+    if (dbEvent.snapshot.value != null) {
       // Sets the offer as remote Description
       Map<String, dynamic> offer =
           (dbEvent.snapshot.value as Map).cast<String, dynamic>();
@@ -120,8 +119,11 @@ class WebRTCConnectionManager {
         RTCSessionDescription(offer['sdp'], offer['type']),
       );
     } else {
-      Fluttertoast.showToast(
-          msg: "Game not found", gravity: ToastGravity.BOTTOM);
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+              defaultTargetPlatform == TargetPlatform.android)
+          ? Fluttertoast.showToast(
+              msg: "$_gameCode not found", gravity: ToastGravity.BOTTOM)
+          : null;
       await dispose();
       return;
     }
@@ -177,15 +179,16 @@ class WebRTCConnectionManager {
         {
           'urls': [
             "stun:stun.l.google.com:19302",
-            'stun:stun1.l.google.com:19302',
-            'stun:stun2.l.google.com:19302',
+            "stun:stun1.l.google.com:19302",
+            "stun:stun2.l.google.com:19302",
             "stun:stun3.l.google.com:19302",
             "stun:stun4.l.google.com:19302",
-            'stun:stun.stunprotocol.org:3478',
-            'stun:stun.voipstunt.com:3478'
+            "stun:stun.stunprotocol.org:3478",
+            "stun:stun.voipstunt.com:3478"
           ]
         }
-      ]
+      ],
+      'sdpSemantics': 'uinified-plan'
     });
 
     // Dumps all own ice candidates into firebase
@@ -218,7 +221,9 @@ class WebRTCConnectionManager {
           _onConnectionFailure();
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
-          _onConnectionFailure();
+          _peerConnection!
+              .restartIce(); // if not restarting ICE it will only try like the first ICE or something and if it fails emdiatly dispose ...
+          // _onConnectionFailure();
           break;
       }
     };

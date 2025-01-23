@@ -46,6 +46,12 @@ class _GameconnectionpopupjoinState extends State<Gameconnectionpopupjoin> {
 
   @override
   void initState() {
+    _codeList = [
+      _codeAlphabet[0],
+      _codeAlphabet[0],
+      _codeAlphabet[0],
+      _codeAlphabet[0]
+    ];
     for (int i = 0; i < 4; i++) {
       _scrollSelectorKeys[i] = GlobalKey<ScrollSelectorState>();
     }

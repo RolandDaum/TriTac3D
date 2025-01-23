@@ -251,7 +251,8 @@ class _GameOverlayState extends State<GameOverlay>
           if (reversedCount == 0) {
             // Checks if player wants to host a game and rewaredeAd is not null else just let them host
             if (popUpType == acPopUpTypes.gameConnectionHost &&
-                rewardedAds.isNotEmpty) {
+                rewardedAds.isNotEmpty &&
+                AdHelpber.isAdAble) {
               // Shows the app
               RewardedAd adFL = rewardedAds.first;
               await adFL.show(onUserEarnedReward: (ad, reward) {});
