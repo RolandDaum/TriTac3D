@@ -1,7 +1,10 @@
 import 'dart:ui';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import 'package:tritac3d/components/popups/gameConnectionPopup.dart';
@@ -226,7 +229,7 @@ class _GameOverlayState extends State<GameOverlay>
     return true;
   }
 
-  void _switchToPopUp(acPopUpTypes popUpType) {
+  void _switchToPopUp(acPopUpTypes popUpType) async {
     if (!(popUpType == acPopUpTypes.gamePlay ||
         popUpType == acPopUpTypes.gameEnd)) {
       this.tttGameManager?.dispose();
@@ -238,8 +241,25 @@ class _GameOverlayState extends State<GameOverlay>
     if (popUpType == acPopUpTypes.gamePlay) {
       tttGameManager?.startGame();
     }
-    if (popUpType == acPopUpTypes.gameEnd) {
-      // DISABLE ANY PLAYS
+    if (popUpType == acPopUpTypes.gameConnection) {
+      try {
+        await FirebaseDatabase.instance
+            .ref("connectionCheck")
+            .once()
+            .timeout(Duration(seconds: 1));
+      } catch (e) {
+        Fluttertoast.showToast(
+            msg: "No Server connection",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 2,
+            backgroundColor: Color(0xFF17191a),
+            textColor: Colors.white,
+            fontSize: 16.0,
+            webBgColor: "linear-gradient(to right, #17191a, #17191a)",
+            webPosition: "center");
+        return;
+      }
     }
 
     int reversedCount = _acControllers.length - 1;

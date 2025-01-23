@@ -119,6 +119,7 @@ class WebRTCConnectionManager {
         RTCSessionDescription(offer['sdp'], offer['type']),
       );
     } else {
+      // This is outside of the widget tree, so it can't display the browser popup I think
       (defaultTargetPlatform == TargetPlatform.iOS ||
               defaultTargetPlatform == TargetPlatform.android)
           ? Fluttertoast.showToast(
